@@ -24,7 +24,6 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={lexend.className + "bg-background w-full h-[100vh]"}>
-        {Toaster[0]}
         <Suspense fallback={<Loading />}>{children}</Suspense>
       </body>
     </html>

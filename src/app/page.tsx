@@ -1,103 +1,66 @@
-import { CompactTable } from "@table-library/react-table-library/compact";
+import dynamic from "next/dynamic";
+import UsersTable from "@/components/UsersTable";
 
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@/components/ui/table";
-import DashboardTable from "@/components/DashboardTable";
-
-import { getMongoData } from "@/lib/mongo";
+import { mongo_cursorToJSON, mongo_rawRequest } from "@/lib/mongo";
 import { getUserDataWithUid } from "@/lib/firebase";
-import { t_UserData, t_UserRecord, unixToFancyDate } from "@/lib/utils";
-
-interface columnData extends t_UserData, t_UserRecord {}
-
-const columns = [
-  {
-    label: "Name",
-    renderCell: async (item: columnData) => {
-      "use server";
-      return item.displayName;
-    }
-  },
-  {
-    label: "Email",
-    renderCell: async (item: columnData) => {
-      "use server";
-      return item.email;
-    }
-  },
-  {
-    label: "Hours",
-    renderCell: async (item: columnData) => {
-      "use server";
-      return item.seconds / 1000 / 60 / 60;
-    }
-  },
-  {
-    label: "Meeting Count",
-    renderCell: async (item: columnData) => {
-      "use server";
-      return item.meetingCount || "?";
-    }
-  },
-  {
-    label: "Last Check In",
-    renderCell: async (item: columnData) => {
-      "use server";
-      return item.lastCheckIn ? unixToFancyDate(item.lastCheckIn) : "?";
-    }
-  }
-];
+import { t_CodesTableData, t_UserData } from "@/lib/types";
+import CodesTable from "@/components/CodesTable";
 
 export default async function Page() {
-  const getUsers = async function () {
-    return await getMongoData(async (db) => {
-      return db.collection("users").find({}).toArray();
+  const getUsersCol = async function () {
+    const ret = await mongo_rawRequest((client) => {
+      return client.db().collection("users").find(
+        {},
+        {
+          limit: 5
+        }
+      );
     });
+    return mongo_cursorToJSON(ret.ret) as any as Promise<t_UserData[]>;
   };
 
-  const data = {
-    nodes: (await getUsers())?.map(async (item: any) => {
+  const getCodesTable = async function () {
+    const ret = await mongo_rawRequest((client) => {
+      return client.db().collection("settings").find({});
+    });
+    return mongo_cursorToJSON(ret.ret) as any as Promise<t_CodesTableData[]>;
+  };
+
+  const combineUserInfo = async function (data: t_UserData[]) {
+    const usersCol = data;
+
+    const promiseArr = await usersCol.map(async (item: t_UserData) => {
       const userData = (await getUserDataWithUid(item.uid)) || {};
 
-      return JSON.parse(
-        JSON.stringify({
-          ...userData,
-          ...item,
-          id: item["_id"]
-        })
-      );
-    })
+      return { ...userData, ...item };
+    });
+
+    return Promise.all(promiseArr);
   };
 
+  const usersTableData = await combineUserInfo(await getUsersCol());
+  const codesTableData = await getCodesTable();
+
   return (
-    <section className="bg-bg-light size-full p-4">
+    <section className="bg-bg-light w-full h-full p-4 flex flex-wrap gap-6 justify-center overflow-x-hidden overflow-y-auto">
       <section
-        className="border sm:border-border lg:border-red-700 bg-background 
-          rounded-sm h-full w-full min-w-[39rem] overflow-visible">
-        <DashboardTable {...{ data, columns }} />
-        {/* <Table>
-          <TableCaption>A list of your recent invoices.</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Hours</TableHead>
-              <TableHead>Meeting Count</TableHead>
-              <TableHead className="text-right">Last Check In</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            
-          </TableBody>
-        </Table> */}
+        className="border sm:border-border 2xl:border-red-700 bg-background 
+          rounded-sm max-h-full max-w-[870px] min-w-0 p-5">
+        <UsersTable data={usersTableData} />
       </section>
+      <section
+        className="w-96 max-h-full flex flex-wrap gap-5 flex-shrink-0 bg-background border sm:border-border
+          rounded-sm p-5">
+        <section className="w-full h-[calc(100%-15rem-1.25rem)] flex-grow border border-green-600 p-5 rounded-sm">
+          <CodesTable data={codesTableData} />  
+        </section>
+        <section className="w-full h-60 border border-green-600 p-5 rounded-sm">
+          Create/Delete Codes
+        </section>
+      </section>
+      {/* <section
+        className="w-96 max-h-full flex flex-wrap gap-5 flex-shrink-0 bg-background border sm:border-border
+          rounded-sm p-5"></section> */}
     </section>
   );
 }

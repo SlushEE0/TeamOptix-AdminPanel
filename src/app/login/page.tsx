@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { Label } from "@/components/ui/label";
 
 import { AuthStates, getCurrentUser, signIn_emailPass } from "@/lib/firebase";
 import { validateSession } from "@/lib/session";
-import Link from "next/link";
+import PasswordBlock from "./PasswordVisibility";
 // import ThirdPartyLogins from "./thirdparty";
 
 export default async function LoginForm() {
@@ -70,7 +71,9 @@ export default async function LoginForm() {
                   Forgot your password?
                 </Link>
               </div>
-              <Input name="password" type="password" required />
+              <div className="flex gap-2">
+                <PasswordBlock />
+              </div>
             </div>
             <Button type="submit" className="w-full">
               Login

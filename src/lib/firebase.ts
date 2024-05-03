@@ -1,21 +1,36 @@
 import { getApp, getApps, initializeApp } from "firebase/app";
+// import admin from "firebase-admin";
 import {
   browserLocalPersistence,
   getAuth,
   GoogleAuthProvider,
   setPersistence,
   signInWithEmailAndPassword,
-  signInWithPopup,
-  User
+  signInWithPopup
 } from "firebase/auth";
 
-import { baseFetchURL, firebaseConfig } from "./config";
+import { ADMIN_CREDENTIALS, BASE_FETCH_URL, FIREBASE_CONFIG } from "./config";
 import { createSession, deleteSession, getSession } from "./session";
-import { t_UserRecord } from "./utils";
+import { t_UserRecord } from "./types";
 
 export const firebaseApp = !getApps().length
-  ? initializeApp(firebaseConfig)
+  ? initializeApp(FIREBASE_CONFIG)
   : getApp();
+// export const firebaseAdminApp = !admin.apps.length
+//   ? admin.initializeApp(
+//       {
+//         credential: admin.credential.cert({
+//           projectId: ADMIN_CREDENTIALS.FIREBASE_PROJECT_ID,
+//           clientEmail: ADMIN_CREDENTIALS.FIREBASE_CLIENT_EMAIL,
+//           privateKey: ADMIN_CREDENTIALS.FIREBASE_PRIVATE_KEY?.replace(
+//             /\\n/g,
+//             "\n"
+//           )
+//         })
+//       },
+//       "admin"
+//     )
+//   : admin.app("admin");
 
 export const firebaseAuth = getAuth(firebaseApp);
 export const provider = new GoogleAuthProvider();
@@ -31,7 +46,7 @@ async function authorizeUser(
   let res: any = false;
 
   try {
-    res = await fetch(baseFetchURL + "/api/auth", {
+    res = await fetch(BASE_FETCH_URL + "/api/auth", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -72,12 +87,12 @@ export async function signIn_emailPass(
     user = (await signInWithEmailAndPassword(firebaseAuth, email, password))
       .user;
   } catch (e) {
-    console.log("User not Found");
+    return console.log("User not Found");
   }
 
   const userIdToken = (await user?.getIdToken()) || "";
 
-  console.log("User Sign-In", email, userIdToken.length);
+  console.log("User Sign-In ", email, userIdToken.length);
   return authorizeUser(userIdToken, "admin", email, password, persist);
 }
 
@@ -88,7 +103,7 @@ export async function signIn_google() {
   try {
     user = (await signInWithPopup(firebaseAuth, provider)).user;
   } catch (e) {
-    console.log("User not Found");
+    return console.log("User not Found");
   }
 
   const userIdToken = (await user?.getIdToken()) || "";
@@ -119,7 +134,7 @@ export async function getUserDataWithUid(uid: string): Promise<t_UserRecord> {
   let res: any = false;
 
   try {
-    res = await fetch(baseFetchURL + "/api/db", {
+    res = await fetch(BASE_FETCH_URL + "/api/db", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

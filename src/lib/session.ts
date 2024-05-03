@@ -1,8 +1,6 @@
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
-import {
-  firebaseAuth,
-} from "./firebase";
+import { firebaseAuth } from "./firebase";
 import { signOut } from "firebase/auth";
 
 const jwtSecret = new TextEncoder().encode("Optix 3749");
@@ -21,7 +19,7 @@ type jwtPayload = {
 async function encrypt(payload: jwtPayload) {
   return await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime("1 week")
+    .setExpirationTime(Date.now() / 1000 + 604800)
     .setIssuer("OptixToolkit Backend")
     .sign(jwtSecret);
 }
@@ -34,7 +32,7 @@ async function decrypt(jwt: string) {
       })
     ).payload;
   } catch (err) {
-    console.warn('Invalid JWT');
+    console.warn("Invalid JWT");
 
     return {};
   }
