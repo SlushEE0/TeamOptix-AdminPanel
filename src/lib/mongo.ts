@@ -1,6 +1,7 @@
-import { CursorFlag, Db, FindCursor, MongoClient, WithId } from "mongodb";
+import { Db, FindCursor, MongoClient, WithId } from "mongodb";
 import { BASE_FETCH_URL, MONGO_URL } from "./config";
 import { getCurrentUser } from "./firebase";
+import { t_Code } from "./types";
 
 const mongoUrl = MONGO_URL;
 let mongoClient: MongoClient;
@@ -75,7 +76,7 @@ export async function mongo_cursorToJSON(cursor: FindCursor<WithId<Document>>) {
   });
 }
 
-async function init_mongo() {
+export async function init_mongo() {
   let connectionUrl = mongoUrl;
   if (!connectionUrl) {
     connectionUrl = await updateMongoUrl();
@@ -84,6 +85,36 @@ async function init_mongo() {
   mongoClient = !mongoClient
     ? new MongoClient(connectionUrl || "")
     : mongoClient;
+}
+
+export async function getCodesCol() {
+  return mongo_rawRequest((client) => {
+    return client.db().collection("settings").find({});
+  });
+}
+
+export async function createCode(code: t_Code) {
+  "use server";
+
+  mongo_rawRequest((client) => {
+    client.db().collection("settings").insertOne(code);
+  });
+}
+
+export async function deleteCode(codeName: string, refetch = false) {
+  "use server";
+
+  mongo_rawRequest((client) => {
+    client.db().collection("settings").deleteOne({
+      value: codeName
+    });
+  });
+
+  if (!refetch) return;
+
+  const cursor = (await getCodesCol()).ret;
+
+  return mongo_cursorToJSON(cursor);
 }
 
 export class MongoPaginatedResults {

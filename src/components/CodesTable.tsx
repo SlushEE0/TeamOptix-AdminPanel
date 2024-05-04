@@ -1,6 +1,7 @@
 "use client";
 
 import React, { memo, useState } from "react";
+import { Lexend } from "next/font/google";
 
 import {
   Table,
@@ -13,6 +14,12 @@ import {
 } from "@nextui-org/table";
 
 import { t_CodesTableData } from "@/lib/types";
+
+const lexend = Lexend({
+  weight: "300",
+  subsets: ["latin"],
+  variable: "--font-sans"
+});
 
 function CodesTable({ data }: { data: t_CodesTableData[] }) {
   const [sortDescriptor, SETsortDescriptor] = useState<SortDescriptor>();
@@ -78,12 +85,12 @@ function CodesTable({ data }: { data: t_CodesTableData[] }) {
       aria-label="OptixToolkit Users"
       sortDescriptor={sortDescriptor}
       onSortChange={sorter}
-      className="overflow-y-scroll overflow-x-scroll h-full">
+      className={"overflow-y-scroll overflow-x-scroll h-full " + lexend.className}>
       <TableHeader>
         <TableColumn key={"value"} allowsSorting>
           Code
         </TableColumn>
-        <TableColumn key={"key"} allowsSorting>
+        <TableColumn key={"key"} allowsSorting className="text-right">
           Type
         </TableColumn>
       </TableHeader>
@@ -94,7 +101,7 @@ function CodesTable({ data }: { data: t_CodesTableData[] }) {
               key={item._id}
               className="hover:bg-[#27272a] transition-all">
               <TableCell>{item.value}</TableCell>
-              <TableCell>{item.key}</TableCell>
+              <TableCell className="text-right">{item.key}</TableCell>
             </TableRow>
           );
         }}

@@ -3,7 +3,6 @@ import { Lexend } from "next/font/google";
 
 import "./globals.css";
 import Loading from "./Loading";
-import Toaster from "@/components/toast";
 
 const lexend = Lexend({
   weight: "400",

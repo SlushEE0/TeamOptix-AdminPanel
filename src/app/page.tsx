@@ -1,10 +1,11 @@
-import dynamic from "next/dynamic";
-import UsersTable from "@/components/UsersTable";
-
-import { mongo_cursorToJSON, mongo_rawRequest } from "@/lib/mongo";
+import "./homepage.css";
+import { mongo_cursorToJSON, mongo_rawRequest, deleteCode, getCodesCol } from "@/lib/mongo";
 import { getUserDataWithUid } from "@/lib/firebase";
 import { t_CodesTableData, t_UserData } from "@/lib/types";
+
+import UsersTable from "@/components/UsersTable";
 import CodesTable from "@/components/CodesTable";
+import DeleteCode from "@/components/DeleteCode";
 
 export default async function Page() {
   const getUsersCol = async function () {
@@ -20,9 +21,7 @@ export default async function Page() {
   };
 
   const getCodesTable = async function () {
-    const ret = await mongo_rawRequest((client) => {
-      return client.db().collection("settings").find({});
-    });
+    const ret = await getCodesCol();
     return mongo_cursorToJSON(ret.ret) as any as Promise<t_CodesTableData[]>;
   };
 
@@ -42,25 +41,21 @@ export default async function Page() {
   const codesTableData = await getCodesTable();
 
   return (
-    <section className="bg-bg-light w-full h-full p-4 flex flex-wrap gap-6 justify-center overflow-x-hidden overflow-y-auto">
-      <section
-        className="border sm:border-border 2xl:border-red-700 bg-background 
-          rounded-sm max-h-full max-w-[870px] min-w-0 p-5">
-        <UsersTable data={usersTableData} />
+    <section className="bg-bg-light w-full h-full p-4 flex flex-wrap gap-3 justify-center borderoverflow-x-hidden overflow-y-auto">
+      <section className="rounded-sm max-h-full h-[calc(100%-16rem-1rem)] w-full grid grid-cols-3 gap-3">
+        <div className="fits-side:col-span-2 w-full border col-span-3 rounded-sm p-4 bg-background">
+          <UsersTable data={usersTableData} />
+        </div>
+        <div className="fits-side:col-span-1 fits-side:w-full h-full min-h-36 w-96 border rounded-sm p-4 bg-background">
+          <CodesTable data={codesTableData} />
+        </div>
       </section>
-      <section
-        className="w-96 max-h-full flex flex-wrap gap-5 flex-shrink-0 bg-background border sm:border-border
-          rounded-sm p-5">
-        <section className="w-full h-[calc(100%-15rem-1.25rem)] flex-grow border border-green-600 p-5 rounded-sm">
-          <CodesTable data={codesTableData} />  
-        </section>
-        <section className="w-full h-60 border border-green-600 p-5 rounded-sm">
-          Create/Delete Codes
-        </section>
+      <section className="w-full h-64 flex gap-4 bg-background border rounded-sm p-4">
+        <div className="border border-green-600 rounded-sm aspect-square h-full p-4"></div>
+        <div className="border border-green-600 rounded-sm aspect-square h-full p-4">
+          <DeleteCode codes={codesTableData} deleteCode={deleteCode} />
+        </div>
       </section>
-      {/* <section
-        className="w-96 max-h-full flex flex-wrap gap-5 flex-shrink-0 bg-background border sm:border-border
-          rounded-sm p-5"></section> */}
     </section>
   );
 }

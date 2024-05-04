@@ -1,3 +1,8 @@
+export type t_TeamsObj = {
+  num: number;
+  name: string;
+};
+
 export type t_UserData = {
   _id: string;
   uid: string;
@@ -18,11 +23,14 @@ export type t_UserRecord = {
   displayName: string;
 };
 
+export type t_Code = {
+  value: string;
+  key: "checkInPassword" | "checkOutPassword" | "attendanceOverride";
+};
+
 export interface t_UsersTableData extends t_UserData, t_UserRecord {}
-export type t_CodesTableData = {
+export interface t_CodesTableData extends t_Code {
   _id: string;
-  key: string;
-  value: "checkInPassword" | "checkOutPassword" | "attendanceOverride";
 }
 
 // Make tables modular

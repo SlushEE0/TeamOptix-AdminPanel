@@ -1,6 +1,7 @@
 "use client";
 
 import React, { memo, useState } from "react";
+import { Lexend } from "next/font/google";
 
 import {
   Table,
@@ -14,6 +15,12 @@ import {
 
 import { unixToFancyDate } from "@/lib/utils";
 import { t_UsersTableData } from "@/lib/types";
+
+const lexend = Lexend({
+  weight: "300",
+  subsets: ["latin"],
+  variable: "--font-sans"
+});
 
 function UsersTable({ data }: { data: t_UsersTableData[] }) {
   const [sortDescriptor, SETsortDescriptor] = useState<SortDescriptor>();
@@ -91,7 +98,7 @@ function UsersTable({ data }: { data: t_UsersTableData[] }) {
       aria-label="OptixToolkit Users"
       sortDescriptor={sortDescriptor}
       onSortChange={sorter}
-      className="overflow-y-scroll overflow-x-scroll h-full">
+      className={"overflow-y-scroll overflow-x-scroll h-full " + lexend.className}>
       <TableHeader>
         <TableColumn key={"name"} allowsSorting>
           Name
