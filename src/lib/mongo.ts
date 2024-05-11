@@ -1,7 +1,7 @@
 import { Db, FindCursor, MongoClient, WithId } from "mongodb";
 import { BASE_FETCH_URL, MONGO_URL } from "./config";
 import { getCurrentUser } from "./firebase";
-import { t_Code } from "./types";
+import { t_Code, t_CodesTableData, t_UserData } from "./types";
 
 const mongoUrl = MONGO_URL;
 let mongoClient: MongoClient;
@@ -94,27 +94,29 @@ export async function getCodesCol() {
 }
 
 export async function createCode(code: t_Code) {
-  "use server";
-
   mongo_rawRequest((client) => {
     client.db().collection("settings").insertOne(code);
   });
 }
 
-export async function deleteCode(codeName: string, refetch = false) {
-  "use server";
-
-  mongo_rawRequest((client) => {
-    client.db().collection("settings").deleteOne({
+export async function findAndDeleteCode(codeName: string) {
+  return mongo_rawRequest((client) => {
+    return client.db().collection("settings").findOneAndDelete({
       value: codeName
     });
   });
+}
 
-  if (!refetch) return;
-
-  const cursor = (await getCodesCol()).ret;
-
-  return mongo_cursorToJSON(cursor);
+export async function getUsersCol() {
+  const ret = await mongo_rawRequest((client) => {
+    return client.db().collection("users").find(
+      {},
+      {
+        limit: 5
+      }
+    );
+  });
+  return mongo_cursorToJSON(ret.ret) as any as Promise<t_UserData[]>;
 }
 
 export class MongoPaginatedResults {

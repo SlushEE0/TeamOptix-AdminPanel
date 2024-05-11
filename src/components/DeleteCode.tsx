@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useEffect, useState } from "react";
+import { memo, useContext, useEffect, useState } from "react";
 import { Lexend } from "next/font/google";
 
 import { Check, ChevronsUpDown } from "lucide-react";
@@ -19,12 +19,9 @@ import {
   PopoverTrigger
 } from "@/components/ui/popover";
 
-import { t_CodesTableData } from "@/lib/types";
+import { CodesContext } from "./DataWrapper";
 
-type props = {
-  codes: t_CodesTableData[];
-  deleteCode: (codeName: string, refetch: boolean) => any;
-};
+type t_codePair = { key: string; value: string };
 
 const lexend = Lexend({
   weight: "300",
@@ -38,19 +35,21 @@ const lexendThick = Lexend({
   variable: "--font-sans"
 });
 
-function DeleteCode({ codes, deleteCode }: props) {
+function DeleteCode({ deleteCode }: { deleteCode: (codeName: string) => any }) {
   const [open, SETopen] = useState(false);
   const [value, SETvalue] = useState("");
-  const [allCodes, SETallCodes] = useState([{ key: "", value: "" }]);
-  const [allData, SETallData] = useState(codes);
+  const [codePairs, SETcodePairs] = useState<t_codePair[]>(null as any);
+  const codesData = useContext(CodesContext);
 
   useEffect(() => {
-    SETallCodes(
-      allData.map((code) => {
-        return { key: code.value.toLowerCase(), value: code.value };
-      })
-    );
-  }, [allData]);
+    codesData
+      ? SETcodePairs(
+          codesData?.map((code) => {
+            return { key: code.value.toLowerCase(), value: code.value };
+          })
+        )
+      : SETcodePairs(null as any);
+  }, [codesData]);
 
   return (
     <section
@@ -75,7 +74,7 @@ function DeleteCode({ codes, deleteCode }: props) {
             <CommandInput placeholder="Search code..." />
             <CommandEmpty>No code found.</CommandEmpty>
             <CommandGroup>
-              {allCodes.map((code) => (
+              {codePairs?.map((code) => (
                 <CommandItem
                   className={
                     "hover:bg-[#27272a] transition-all " + lexend.className
@@ -86,7 +85,7 @@ function DeleteCode({ codes, deleteCode }: props) {
                     SETvalue(
                       currentValue === value
                         ? ""
-                        : (allCodes.find((item) => item.key === currentValue)
+                        : (codePairs.find((item) => item.key === currentValue)
                             ?.value as string)
                     );
                     SETopen(false);
@@ -109,7 +108,7 @@ function DeleteCode({ codes, deleteCode }: props) {
         variant={"destructive"}
         className="w-full"
         onClick={async () => {
-          SETallData(await deleteCode(value, true));
+          deleteCode(value);
           SETvalue("");
           SETopen(false);
         }}>

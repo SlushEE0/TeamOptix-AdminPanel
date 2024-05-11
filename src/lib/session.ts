@@ -5,11 +5,14 @@ import { signOut } from "firebase/auth";
 
 const jwtSecret = new TextEncoder().encode("Optix 3749");
 
-type ToolkitPayload = {
-  email: string;
-  pass: string;
-  exp: number;
-  iss: string;
+type ToolkitJWT = {
+  payload: {
+    email: string;
+    pass: string;
+    expTime: number;
+    iss: "OptixToolkit Backend";
+  };
+  protectedHeader: { alg: string };
 };
 
 type jwtPayload = {
@@ -17,20 +20,19 @@ type jwtPayload = {
   pass: string;
 };
 async function encrypt(payload: jwtPayload) {
-  return await new SignJWT(payload)
+  const expTime = Date.now() / 1000 + 604800;
+
+  return await new SignJWT({ ...payload, expTime })
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime(Date.now() / 1000 + 604800)
     .setIssuer("OptixToolkit Backend")
     .sign(jwtSecret);
 }
 
-async function decrypt(jwt: string) {
+async function decrypt(jwt: string): Promise<ToolkitJWT | {}> {
   try {
-    return (
-      await jwtVerify(jwt, jwtSecret, {
-        algorithms: ["HS256"]
-      })
-    ).payload;
+    return await jwtVerify(jwt, jwtSecret, {
+      algorithms: ["HS256"]
+    });
   } catch (err) {
     console.warn("Invalid JWT");
 
@@ -39,9 +41,7 @@ async function decrypt(jwt: string) {
 }
 
 export async function getSession() {
-  return (await decrypt(
-    cookies().get("session")?.value || ""
-  )) as ToolkitPayload;
+  return (await decrypt(cookies().get("session")?.value || "")) as ToolkitJWT;
 }
 
 export async function createSession(email: string, pass: string) {
@@ -65,8 +65,8 @@ export async function validateSession() {
   const session = await getSession();
   if (!session) return false;
 
-  const jwtExp = session.exp;
+  const jwtExp = session.payload?.expTime || 0;
   if (!jwtExp) return false;
 
-  if (Date.now() * 1000 > jwtExp) return true;
+  if (Date.now() / 1000 < jwtExp) return true;
 }

@@ -31,6 +31,8 @@ export default async function LoginForm() {
 
     const res = await signIn_emailPass(email, password);
 
+    console.log(res);
+
     switch (res) {
       case AuthStates.AUTHORIZED:
         redirect("/");

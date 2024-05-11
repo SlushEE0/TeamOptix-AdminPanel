@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo, useState } from "react";
+import React, { memo, useContext, useState } from "react";
 import { Lexend } from "next/font/google";
 
 import {
@@ -14,6 +14,7 @@ import {
 } from "@nextui-org/table";
 
 import { t_CodesTableData } from "@/lib/types";
+import { CodesContext } from "./DataWrapper";
 
 const lexend = Lexend({
   weight: "300",
@@ -23,7 +24,7 @@ const lexend = Lexend({
 
 function CodesTable({ data }: { data: t_CodesTableData[] }) {
   const [sortDescriptor, SETsortDescriptor] = useState<SortDescriptor>();
-  const [tableData, SETtableData] = useState(data);
+  const [tableData, SETtableData] = useState(useContext(CodesContext));
 
   const sorter = function (descriptor: SortDescriptor) {
     console.log(descriptor);
@@ -85,7 +86,9 @@ function CodesTable({ data }: { data: t_CodesTableData[] }) {
       aria-label="OptixToolkit Users"
       sortDescriptor={sortDescriptor}
       onSortChange={sorter}
-      className={"overflow-y-scroll overflow-x-scroll h-full " + lexend.className}>
+      className={
+        "overflow-y-scroll overflow-x-scroll h-full " + lexend.className
+      }>
       <TableHeader>
         <TableColumn key={"value"} allowsSorting>
           Code
