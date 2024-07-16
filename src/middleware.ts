@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { validateSession } from "./lib/session";
+import { validateSession } from "./app/auth/session";
 
 export async function middleware(req: NextRequest) {
   if (await validateSession()) return;

@@ -1,10 +1,13 @@
+export type With_id<t> = t & {
+  _id: string;
+};
+
 export type t_TeamsObj = {
   num: number;
   name: string;
 };
 
-export type t_UserData = {
-  _id: string;
+export type t_MongoUserData = {
   uid: string;
   lastCheckIn: number;
   seconds: number;
@@ -28,9 +31,13 @@ export type t_Code = {
   key: "checkInPassword" | "checkOutPassword" | "attendanceOverride";
 };
 
-export interface t_UsersTableData extends t_UserData, t_UserRecord {}
-export interface t_CodesTableData extends t_Code {
-  _id: string;
+export interface t_UserData extends t_MongoUserData, t_UserRecord {}
+
+export enum AuthStates {
+  AUTHORIZED,
+  UNAUTHORIZED,
+  UNKNOWN,
+  ERROR
 }
 
 // Make tables modular

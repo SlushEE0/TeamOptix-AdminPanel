@@ -38,18 +38,18 @@ const lexendThick = Lexend({
 function DeleteCode({ deleteCode }: { deleteCode: (codeName: string) => any }) {
   const [open, SETopen] = useState(false);
   const [value, SETvalue] = useState("");
-  const [codePairs, SETcodePairs] = useState<t_codePair[]>(null as any);
-  const codesData = useContext(CodesContext);
+  const [codesData, SETcodesData] = useState<t_codePair[]>(null as any);
+  const subscription_codes = useContext(CodesContext);
 
   useEffect(() => {
-    codesData
-      ? SETcodePairs(
-          codesData?.map((code) => {
+    subscription_codes
+      ? SETcodesData(
+          subscription_codes?.map((code) => {
             return { key: code.value.toLowerCase(), value: code.value };
           })
         )
-      : SETcodePairs(null as any);
-  }, [codesData]);
+      : SETcodesData(null as any);
+  }, [subscription_codes]);
 
   return (
     <section
@@ -57,7 +57,9 @@ function DeleteCode({ deleteCode }: { deleteCode: (codeName: string) => any }) {
         "flex items-center justify-center flex-wrap size-full " +
         lexend.className
       }>
-      <h1 className={"l text-xl " + lexendThick.className}>Delete Code</h1>
+      <h1 className={"self-start text-xl " + lexendThick.className}>
+        Delete Code
+      </h1>
       <Popover open={open} onOpenChange={SETopen}>
         <PopoverTrigger asChild>
           <Button
@@ -72,9 +74,9 @@ function DeleteCode({ deleteCode }: { deleteCode: (codeName: string) => any }) {
         <PopoverContent className="w-[200px] p-0">
           <Command>
             <CommandInput placeholder="Search code..." />
-            <CommandEmpty>No code found.</CommandEmpty>
+            <CommandEmpty>No codes found.</CommandEmpty>
             <CommandGroup>
-              {codePairs?.map((code) => (
+              {codesData?.map((code) => (
                 <CommandItem
                   className={
                     "hover:bg-[#27272a] transition-all " + lexend.className
@@ -85,7 +87,7 @@ function DeleteCode({ deleteCode }: { deleteCode: (codeName: string) => any }) {
                     SETvalue(
                       currentValue === value
                         ? ""
-                        : (codePairs.find((item) => item.key === currentValue)
+                        : (codesData.find((item) => item.key === currentValue)
                             ?.value as string)
                     );
                     SETopen(false);

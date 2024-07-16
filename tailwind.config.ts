@@ -8,7 +8,7 @@ const config = {
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
-    "./node_modules/@nextui-org/theme/dist/components/(table|checkbox|spacer).js"
+    "./node_modules/@nextui-org/**/*.{js,ts,tsx,ts}"
   ],
   prefix: "",
   theme: {

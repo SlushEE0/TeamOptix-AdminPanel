@@ -1,4 +1,4 @@
-import { getApp, getApps, initializeApp } from "firebase/app";
+import { FirebaseError, getApp, getApps, initializeApp } from "firebase/app";
 // import admin from "firebase-admin";
 import {
   browserLocalPersistence,
@@ -9,28 +9,14 @@ import {
   signInWithPopup
 } from "firebase/auth";
 
-import { ADMIN_CREDENTIALS, BASE_FETCH_URL, FIREBASE_CONFIG } from "./config";
-import { createSession, deleteSession, getSession } from "./session";
-import { t_UserRecord } from "./types";
+import { BASE_FETCH_URL, FIREBASE_CONFIG } from "../lib/config";
+import { createSession, deleteSession, getSession } from "@/app/auth/session";
+import { t_UserRecord } from "../lib/types";
+import { AuthStates } from "@/lib/types";
 
 export const firebaseApp = !getApps().length
   ? initializeApp(FIREBASE_CONFIG)
   : getApp();
-// export const firebaseAdminApp = !admin.apps.length
-//   ? admin.initializeApp(
-//       {
-//         credential: admin.credential.cert({
-//           projectId: ADMIN_CREDENTIALS.FIREBASE_PROJECT_ID,
-//           clientEmail: ADMIN_CREDENTIALS.FIREBASE_CLIENT_EMAIL,
-//           privateKey: ADMIN_CREDENTIALS.FIREBASE_PRIVATE_KEY?.replace(
-//             /\\n/g,
-//             "\n"
-//           )
-//         })
-//       },
-//       "admin"
-//     )
-//   : admin.app("admin");
 
 export const firebaseAuth = getAuth(firebaseApp);
 export const provider = new GoogleAuthProvider();
@@ -40,7 +26,6 @@ async function authorizeUser(
   userToken: string,
   type: userOptions,
   email = "",
-  password = "",
   persist = true
 ): Promise<AuthStates> {
   let res: any = false;
@@ -63,10 +48,10 @@ async function authorizeUser(
     console.warn(err);
   }
 
-  console.log("User Auth", email, res);
+  console.log(`${email}-Authorize`, res);
   switch (true) {
     case res === true:
-      persist ? createSession(email, password) : null;
+      persist ? createSession(email) : null;
       return AuthStates.AUTHORIZED;
     case res === false:
       return AuthStates.UNAUTHORIZED;
@@ -87,13 +72,18 @@ export async function signIn_emailPass(
     user = (await signInWithEmailAndPassword(firebaseAuth, email, password))
       .user;
   } catch (e) {
-    return console.log("User not Found");
+    if ((e as FirebaseError).code === "auth/wrong-password") {
+      console.log("Unknown User");
+      return AuthStates.UNKNOWN;
+    }
+
+    return AuthStates.ERROR;
   }
 
   const userIdToken = (await user?.getIdToken()) || "";
 
-  console.log("User Sign-In ", email, userIdToken.length);
-  return authorizeUser(userIdToken, "admin", email, password, persist);
+  console.log(`${email}-SignIn`, userIdToken.length);
+  return authorizeUser(userIdToken, "admin", email, persist);
 }
 
 export async function signIn_google() {
@@ -111,12 +101,12 @@ export async function signIn_google() {
   return authorizeUser(userIdToken, "admin");
 }
 
-export function getCurrentUser() {
+export async function getCurrentUser() {
   return firebaseAuth.currentUser;
 }
 
 export async function loginWithPersistedData() {
-  const { email, pass } = await getSession();
+  const { email, pass } = (await getSession()) as any;
 
   console.log(email, pass);
 
@@ -149,11 +139,4 @@ export async function getUserDataWithUid(uid: string): Promise<t_UserRecord> {
   }
 
   return res;
-}
-
-export enum AuthStates {
-  AUTHORIZED,
-  UNAUTHORIZED,
-  UNKNOWN,
-  ERROR
 }

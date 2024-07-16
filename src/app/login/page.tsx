@@ -1,47 +1,55 @@
-import { redirect } from "next/navigation";
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
+import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { AuthStates, getCurrentUser, signIn_emailPass } from "@/lib/firebase";
-import { validateSession } from "@/lib/session";
-import PasswordBlock from "./PasswordVisibility";
+import { AuthStates } from "@/lib/types";
+import PasswordBlock from "./ShowPassword";
+import { sessionCheck, validateAuth } from "../auth/authUtils";
 // import ThirdPartyLogins from "./thirdparty";
 
-export default async function LoginForm() {
-  const is_validSession = await validateSession();
-  const exists_currentUser = !!getCurrentUser();
+export default function LoginForm() {
+  const router = useRouter();
 
-  if (is_validSession && exists_currentUser) {
-    redirect("/");
-  } else if (is_validSession && !exists_currentUser) {
-    //find way to delete cookie
-  }
+  // useEffect(() => {
+  //   sessionCheck();
+  // }, []);
 
   const onFormSubmit = async function (formData: FormData) {
-    "use server";
+    const loader = toast.loading("Authorizing...");
 
     const email = formData.get("email")?.toString() || "";
-    const password = formData.get("password")?.toString() || "";
+    const pass = formData.get("password")?.toString() || "";
 
-    console.log(email, password);
+    const res = await validateAuth(email, pass);
+    toast.remove(loader);
 
-    const res = await signIn_emailPass(email, password);
-
-    console.log(res);
-
+    console.log(AuthStates.UNAUTHORIZED);
     switch (res) {
       case AuthStates.AUTHORIZED:
-        redirect("/");
+        // console.log("AUTHORIZED");
+        toast.success("Authorized 🙂");
+        router.push("/");
         break;
       case AuthStates.UNAUTHORIZED:
+        // console.log("UNAUTHORIZED");
+        toast.error("Unauthorized 😔");
         break;
       default:
+        console.log("NO USER");
+        toast.error("Incorrect email/password");
         break;
     }
+  };
+
+  const onGsignIn = function () {
+    toast.error("Sorry, this feature is in progress");
   };
 
   return (
@@ -57,12 +65,7 @@ export default async function LoginForm() {
           <form className="grid gap-4" action={onFormSubmit}>
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
-              <Input
-                name="email"
-                type="email"
-                placeholder="m@example.com"
-                required
-              />
+              <Input name="email" type="email" placeholder="m@example.com" />
             </div>
             <div className="grid gap-2">
               <div className="flex items-center">
@@ -82,7 +85,9 @@ export default async function LoginForm() {
             </Button>
             <Button
               variant="outline"
-              className="w-full p-0 flex justify-between">
+              type="button"
+              className="w-full p-0 flex justify-between"
+              onClick={onGsignIn}>
               <img
                 src="./googleLogo.svg"
                 alt="google logo"

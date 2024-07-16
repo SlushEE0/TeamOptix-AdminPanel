@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo, useContext, useState } from "react";
+import React, { memo, useContext, useEffect, useState } from "react";
 import { Lexend } from "next/font/google";
 
 import {
@@ -13,7 +13,6 @@ import {
   SortDescriptor
 } from "@nextui-org/table";
 
-import { t_CodesTableData } from "@/lib/types";
 import { CodesContext } from "./DataWrapper";
 
 const lexend = Lexend({
@@ -22,9 +21,15 @@ const lexend = Lexend({
   variable: "--font-sans"
 });
 
-function CodesTable({ data }: { data: t_CodesTableData[] }) {
-  const [sortDescriptor, SETsortDescriptor] = useState<SortDescriptor>();
+function CodesTable() {
+  const [sortDescriptor, SETsortDescriptor] = useState<SortDescriptor>({});
   const [tableData, SETtableData] = useState(useContext(CodesContext));
+  const subscription_codes = useContext(CodesContext);
+
+  useEffect(() => {
+    SETtableData(subscription_codes);
+    sorter({});
+  }, [subscription_codes]);
 
   const sorter = function (descriptor: SortDescriptor) {
     console.log(descriptor);

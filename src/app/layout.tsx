@@ -1,8 +1,9 @@
 import { Suspense } from "react";
 import { Lexend } from "next/font/google";
 
+import { Toaster } from "react-hot-toast";
+
 import "./globals.css";
-import Loading from "./Loading";
 
 const lexend = Lexend({
   weight: "400",
@@ -23,7 +24,8 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={lexend.className + "bg-background w-full h-[100vh]"}>
-        <Suspense fallback={<Loading />}>{children}</Suspense>
+        {children}
+        <Toaster position="bottom-right" />
       </body>
     </html>
   );

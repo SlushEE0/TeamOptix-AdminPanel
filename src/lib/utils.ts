@@ -26,6 +26,6 @@ export function unixToFancyDate(unixTime: number) {
   return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 }
 
-export default function NumericalSort(data:any) {
+export function NumericalSort(data:any) {
   
 }

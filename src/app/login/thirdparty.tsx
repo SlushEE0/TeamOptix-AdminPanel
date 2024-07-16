@@ -3,7 +3,8 @@
 import { redirect } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import { AuthStates, signIn_google } from "@/lib/firebase";
+import { signIn_google } from "@/db/firebase";
+import { AuthStates } from "@/lib/types";
 
 export default function ThirdPartyLogins({ toast }: { toast: any }) {
   const onSignInWithGoogle = function () {
