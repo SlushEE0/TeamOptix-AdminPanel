@@ -1,9 +1,9 @@
 "use client";
 
-import React, { memo, useState } from "react";
+import React, { memo, useContext, useEffect, useRef, useState } from "react";
 import { Lexend } from "next/font/google";
+import { useRouter } from "next/navigation";
 
-import { useInfiniteScroll } from "@nextui-org/use-infinite-scroll";
 import { Spinner } from "@nextui-org/spinner";
 import {
   Table,
@@ -12,12 +12,17 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  SortDescriptor
-} from "@nextui-org/table";
+  SortDescriptor,
+  User
+} from "@nextui-org/react";
 import { NextUIProvider } from "@nextui-org/system";
 
 import { With_id, t_UserData } from "@/lib/types";
 import { unixToFancyDate } from "@/lib/utils";
+import { getDocumentCount, getPage } from "./pagination";
+
+import useOnScreen from "@/lib/useOnScreen";
+import { UsersContext } from "./DataWrapper";
 
 const lexend = Lexend({
   weight: "300",
@@ -25,19 +30,31 @@ const lexend = Lexend({
   variable: "--font-sans"
 });
 
-function UsersTable({ data }: { data: With_id<t_UserData>[] }) {
-  const [items, SETitems] = useState(data);
+function UsersTable() {
+  const [items, SETitems] = useContext(UsersContext);
 
   const [isLoading, SETisLoading] = React.useState(true);
   const [sortDescriptor, SETsortDescriptor] = useState<SortDescriptor>();
 
-  const [loaderRef, scrollerRef] = useInfiniteScroll({
-    hasMore: isLoading,
-    onLoadMore: load
-  });
+  const loaderRef = useRef<HTMLDivElement>(null);
+  const loaderVisible = useOnScreen(loaderRef);
+
+  const router = useRouter();
+
+  useEffect(() => {
+    if (loaderVisible) load();
+  }, [loaderVisible]);
 
   async function load() {
-    SETisLoading(false);
+    const newItems = await getPage();
+
+    SETitems((currItems) => {
+      return [...currItems, ...newItems];
+    });
+
+    if ((await getDocumentCount()) === items.length) {
+      SETisLoading(false);
+    }
   }
 
   const sorter = function (descriptor: SortDescriptor) {
@@ -68,7 +85,7 @@ function UsersTable({ data }: { data: With_id<t_UserData>[] }) {
         });
         return SETsortDescriptor(descriptor);
 
-      case "name":
+      case "user":
         SETitems((data) => {
           if (descriptor.direction === "ascending") {
             return data.toSorted((a, b) => {
@@ -106,14 +123,18 @@ function UsersTable({ data }: { data: With_id<t_UserData>[] }) {
     }
   };
 
+  const onNameClicked = function (e: React.Key) {
+    router.push(("/user/" + e) as string);
+  };
+
   return (
     <NextUIProvider>
       <Table
+        aria-label="Users Table"
         removeWrapper
         isHeaderSticky
         sortDescriptor={sortDescriptor}
         onSortChange={sorter}
-        baseRef={scrollerRef}
         bottomContent={
           isLoading ? (
             <div className="flex w-full justify-center border-none">
@@ -121,14 +142,14 @@ function UsersTable({ data }: { data: With_id<t_UserData>[] }) {
             </div>
           ) : null
         }
+        onRowAction={onNameClicked}
         className={`${lexend.className}`}>
         <TableHeader>
-          <TableColumn key={"name"} allowsSorting>
-            Name
+          <TableColumn key={"user"} allowsSorting>
+            User
           </TableColumn>
-          <TableColumn key={"email"}>Email</TableColumn>
           <TableColumn key={"hours"} allowsSorting>
-            Hours
+            Build Season Hours
           </TableColumn>
           <TableColumn key={"meetings"} allowsSorting>
             Meeting Count
@@ -138,20 +159,29 @@ function UsersTable({ data }: { data: With_id<t_UserData>[] }) {
           </TableColumn>
         </TableHeader>
         <TableBody isLoading={isLoading} items={items}>
-          {(item) => {
+          {(user) => {
             return (
               <TableRow
-                key={item._id}
+                key={user._id}
                 className="hover:bg-[#27272a] transition-all">
-                <TableCell>{item.displayName}</TableCell>
-                <TableCell>{item.email}</TableCell>
                 <TableCell>
-                  {(item.seconds / 1000 / 60 / 60).toFixed(1)}
+                  <User
+                    avatarProps={{
+                      radius: "sm",
+                      src: user.photoURL,
+                      size: "md"
+                    }}
+                    description={user.email}
+                    name={user.displayName}
+                  />
                 </TableCell>
-                <TableCell>{item.meetingCount}</TableCell>
                 <TableCell>
-                  {item.lastCheckIn
-                    ? unixToFancyDate(item.lastCheckIn)
+                  {(user.seconds / 1000 / 60 / 60).toFixed(1)}
+                </TableCell>
+                <TableCell>{user.meetingCount}</TableCell>
+                <TableCell>
+                  {user.lastCheckIn
+                    ? unixToFancyDate(user.lastCheckIn)
                     : "Unknown"}
                 </TableCell>
               </TableRow>
@@ -164,8 +194,3 @@ function UsersTable({ data }: { data: With_id<t_UserData>[] }) {
 }
 
 export default memo(UsersTable);
-
-{
-  /*
-   */
-}

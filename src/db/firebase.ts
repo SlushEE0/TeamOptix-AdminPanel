@@ -10,7 +10,7 @@ import {
 } from "firebase/auth";
 
 import { BASE_FETCH_URL, FIREBASE_CONFIG } from "../lib/config";
-import { createSession, deleteSession, getSession } from "@/app/auth/session";
+import { createSession, deleteSession, getSession } from "@/lib/auth/session";
 import { t_UserRecord } from "../lib/types";
 import { AuthStates } from "@/lib/types";
 

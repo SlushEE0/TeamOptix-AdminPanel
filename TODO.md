@@ -8,3 +8,8 @@
 ***
 # UI/UX
 #### for the love of got make it not look like someone dumped a trash can on the screen (jokes :])
+
+
+TODO:
+-
+- USER PAGE

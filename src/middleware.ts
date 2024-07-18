@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { validateSession } from "./app/auth/session";
+import { validateSession } from "./lib/auth/session";
 
 export async function middleware(req: NextRequest) {
   if (await validateSession()) return;
@@ -12,5 +12,5 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   //ALL PROTECTED ROUTES
-  matcher: ["/"]
+  matcher: ["/", "/dashboard", "/admin", "/user/:path"]
 };

@@ -1,9 +1,9 @@
 "use client";
 
-import { createContext, useState } from "react";
+import { Dispatch, SetStateAction, createContext, useState } from "react";
 
 import { t_UserData, t_Code, With_id } from "@/lib/types";
-import { deleteCode, getAllCodes, getAllUserData } from "@/lib/tableUtils";
+import { deleteCode } from "@/app/dashboard/utils";
 
 import UsersTable from "./UsersTable";
 import CodesTable from "./CodesTable";
@@ -14,19 +14,18 @@ type CodesTableData = With_id<t_Code>[];
 type UsersTableData = With_id<t_UserData>[];
 
 export const CodesContext = createContext<CodesTableData>(null as any);
-export const UsersContext = createContext<UsersTableData>(null as any);
+export const UsersContext = createContext<
+  [UsersTableData, Dispatch<SetStateAction<UsersTableData>>]
+>(null as any);
 
 type props = {
   initalCodesData: CodesTableData;
-  initalUsersData: UsersTableData;
 };
 
 export default function DataWrapper({
   initalCodesData,
-  initalUsersData
 }: props) {
-  const [usersTableData, SETusersTableData] =
-    useState<UsersTableData>(initalUsersData);
+  const [usersTableData, SETusersTableData] = useState<UsersTableData>([]);
   const [codesTableData, SETcodesTableData] =
     useState<CodesTableData>(initalCodesData);
 
@@ -43,9 +42,9 @@ export default function DataWrapper({
     <section className="bg-bg-light w-full h-full p-4 flex flex-wrap gap-3 justify-center overflow-x-hidden">
       <CodesContext.Provider value={codesTableData}>
         <section className="rounded-sm h-[calc(100%-16rem-1rem)] w-full grid grid-cols-3 grid-rows-1 gap-3">
-          <UsersContext.Provider value={usersTableData}>
+          <UsersContext.Provider value={[usersTableData, SETusersTableData]}>
             <div className="fits-side:col-span-2 w-full max-h-full border overflow-scroll col-span-3 rounded-sm p-4 bg-background">
-              <UsersTable data={usersTableData} />
+              <UsersTable />
             </div>
           </UsersContext.Provider>
           <div className="fits-side:col-span-1 fits-side:w-full h-full w-96 border rounded-sm p-4 bg-background">

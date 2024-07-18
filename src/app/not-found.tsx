@@ -9,7 +9,7 @@ export default function NotFound() {
         <h1 className="text-9xl relative bottom-2">404</h1>
       </div>
       <p className="text-2xl p-4 ">You aren't supposed to be here</p>
-      <Link href="/" className="absolute bottom-3">
+      <Link href="/dashboard" className="absolute bottom-3">
         <Button className="text-3xl" size={"lg"}>
           Return Home
         </Button>

@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 
 import { AuthStates } from "@/lib/types";
 import PasswordBlock from "./ShowPassword";
-import { sessionCheck, validateAuth } from "../auth/authUtils";
+import { sessionCheck, validateAuth } from "../../lib/auth/authUtils";
 // import ThirdPartyLogins from "./thirdparty";
 
 export default function LoginForm() {
@@ -35,7 +35,7 @@ export default function LoginForm() {
       case AuthStates.AUTHORIZED:
         // console.log("AUTHORIZED");
         toast.success("Authorized 🙂");
-        router.push("/");
+        router.push("/dashboard");
         break;
       case AuthStates.UNAUTHORIZED:
         // console.log("UNAUTHORIZED");

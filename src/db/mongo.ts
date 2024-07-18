@@ -50,10 +50,10 @@ export async function mongo_parseFindCursor<T>(cursor: FindCursor<WithId<Documen
 }
 
 export async function mongo_parseDocId<T>(doc: WithId<Document>) {
-  return doc ? {
+  return {
     ...doc,
     _id: doc._id.toJSON()
-  } as With_id<T> : null
+  } as With_id<T>
 }
 
 

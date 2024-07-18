@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getPassResetLink } from "../auth/authUtils";
+import { getPassResetLink } from "../../lib/auth/authUtils";
 
 export default function ForgotPassword() {
   const [email, SETemail] = useState("");
