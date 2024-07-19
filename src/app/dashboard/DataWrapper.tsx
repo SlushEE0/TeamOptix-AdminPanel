@@ -43,11 +43,11 @@ export default function DataWrapper({
       <CodesContext.Provider value={codesTableData}>
         <section className="rounded-sm h-[calc(100%-16rem-1rem)] w-full grid grid-cols-3 grid-rows-1 gap-3">
           <UsersContext.Provider value={[usersTableData, SETusersTableData]}>
-            <div className="fits-side:col-span-2 w-full max-h-full border overflow-scroll col-span-3 rounded-sm p-4 bg-background">
+            <div className="lg:col-span-2 w-full max-h-full border overflow-scroll col-span-3 rounded-sm p-4 bg-background">
               <UsersTable />
             </div>
           </UsersContext.Provider>
-          <div className="fits-side:col-span-1 fits-side:w-full h-full w-96 border rounded-sm p-4 bg-background">
+          <div className="lg:col-span-1 lg:w-full h-full w-96 border rounded-sm p-4 bg-background">
             <CodesTable />
           </div>
         </section>

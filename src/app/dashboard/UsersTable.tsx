@@ -138,7 +138,7 @@ function UsersTable() {
         bottomContent={
           isLoading ? (
             <div className="flex w-full justify-center border-none">
-              <Spinner size="lg" ref={loaderRef} color="secondary" />
+              <Spinner size="lg" ref={loaderRef} color="success" />
             </div>
           ) : null
         }

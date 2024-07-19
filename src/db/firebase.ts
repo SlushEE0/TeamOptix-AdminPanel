@@ -11,7 +11,7 @@ import {
 
 import { BASE_FETCH_URL, FIREBASE_CONFIG } from "../lib/config";
 import { createSession, deleteSession, getSession } from "@/lib/auth/session";
-import { t_UserRecord } from "../lib/types";
+import { t_MongoUserData, t_UserRecord, With_id } from "../lib/types";
 import { AuthStates } from "@/lib/types";
 
 export const firebaseApp = !getApps().length
@@ -139,4 +139,21 @@ export async function getUserDataWithUid(uid: string): Promise<t_UserRecord> {
   }
 
   return res;
+}
+export async function appendFBdataArr(
+  mongoUserData: With_id<t_MongoUserData>[]
+) {
+  const promiseArr = await mongoUserData.map(async (item) => {
+    const userData = (await getUserDataWithUid(item.uid)) || {};
+
+    return { ...userData, ...item };
+  });
+
+  return Promise.all(promiseArr);
+}
+
+export async function appendFBdata<T>(mongoUserData: { uid: string } & T) {
+  const userData = (await getUserDataWithUid(mongoUserData.uid)) || {};
+
+  return { ...userData, ...mongoUserData };
 }

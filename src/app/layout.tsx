@@ -1,11 +1,11 @@
 import { Suspense } from "react";
-import { Lexend } from "next/font/google";
+import { Open_Sans } from "next/font/google";
 
 import { Toaster } from "react-hot-toast";
 
 import "./globals.css";
 
-const lexend = Lexend({
+const openSans = Open_Sans({
   weight: "400",
   subsets: ["latin"],
   variable: "--font-sans"
@@ -22,8 +22,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className={lexend.className + "bg-background w-full h-[100vh]"}>
+    <html lang="en" className={`${openSans.className} dark`}>
+      <body className={"bg-background w-full h-[100vh]"}>
         {children}
         <Toaster position="bottom-right" />
       </body>

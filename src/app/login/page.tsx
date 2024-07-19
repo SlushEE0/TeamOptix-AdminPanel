@@ -53,9 +53,9 @@ export default function LoginForm() {
   };
 
   return (
-    <main className="w-full lg:grid lg:min-h-[600px] lg:grid-cols-5 xl:min-h-[800px]">
-      <section className="flex items-center justify-center py-12 col-span-2">
-        <div className="mx-auto grid w-[350px] gap-5 sm:translate-y-1/2 lg:translate-y-[-10%] xl:translate-y-[-30%]">
+    <main className="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
+      <section className="flex items-center justify-center py-12">
+        <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
             <h1 className="text-3xl font-bold">Login</h1>
             <p className="text-balance text-muted-foreground">
@@ -99,7 +99,7 @@ export default function LoginForm() {
           </form>
         </div>
       </section>
-      <section className="hidden bg-muted lg:block col-span-3">
+      <section className="hidden bg-muted lg:block">
         <Image
           src="/starryNight.svg"
           alt="Image"

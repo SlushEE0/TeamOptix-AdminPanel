@@ -49,7 +49,7 @@ export async function mongo_parseFindCursor<T>(cursor: FindCursor<WithId<Documen
   return data
 }
 
-export async function mongo_parseDocId<T>(doc: WithId<Document>) {
+export async function mongo_parseDocId<T>(doc: WithId<T>) {
   return {
     ...doc,
     _id: doc._id.toJSON()

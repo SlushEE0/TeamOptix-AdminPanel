@@ -2,7 +2,7 @@
 
 import { mongoReq, mongo_parseFindCursor } from "@/db/mongo";
 import { t_MongoUserData } from "@/lib/types";
-import { appendFBdataArr } from "./utils";
+import { appendFBdataArr } from "@/db/firebase";
 
 let pageSize = 20;
 let currPage = 1;
