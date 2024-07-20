@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useContext, useEffect, useState } from "react";
+import { memo, useContext, useState } from "react";
 import { Lexend } from "next/font/google";
 
 import { Check, ChevronsUpDown } from "lucide-react";
@@ -11,7 +11,8 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandInput,
-  CommandItem
+  CommandItem,
+  CommandList
 } from "@/components/ui/command";
 import {
   Popover,
@@ -20,8 +21,7 @@ import {
 } from "@/components/ui/popover";
 
 import { CodesContext } from "./DataWrapper";
-
-type t_codePair = { key: string; value: string };
+import { deleteCode } from "./utils";
 
 const lexend = Lexend({
   weight: "300",
@@ -35,28 +35,29 @@ const lexendThick = Lexend({
   variable: "--font-sans"
 });
 
-function DeleteCode({ deleteCode }: { deleteCode: (codeName: string) => any }) {
+function DeleteCode() {
   const [open, SETopen] = useState(false);
   const [value, SETvalue] = useState("");
-  const [codesData, SETcodesData] = useState<t_codePair[]>(null as any);
-  const subscription_codes = useContext(CodesContext);
+  const [allCodes, SETallCodes] = useContext(CodesContext);
 
-  useEffect(() => {
-    subscription_codes
-      ? SETcodesData(
-          subscription_codes?.map((code) => {
-            return { key: code.value.toLowerCase(), value: code.value };
-          })
-        )
-      : SETcodesData(null as any);
-  }, [subscription_codes]);
+  const onDeleteCode = async function () {
+    const deletedDoc = await deleteCode(value);
+
+    SETallCodes((allCodes) =>
+      allCodes.filter((code) => {
+        if (code._id === deletedDoc?._id) return false;
+
+        return true;
+      })
+    );
+
+    SETvalue("");
+    SETopen(false);
+  };
 
   return (
     <section
-      className={
-        "flex items-center justify-center flex-wrap size-full " +
-        lexend.className
-      }>
+      className={`flex items-center justify-center flex-wrap size-full ${lexend.className}`}>
       <h1 className={"self-start text-xl " + lexendThick.className}>
         Delete Code
       </h1>
@@ -76,44 +77,31 @@ function DeleteCode({ deleteCode }: { deleteCode: (codeName: string) => any }) {
             <CommandInput placeholder="Search code..." />
             <CommandEmpty>No codes found.</CommandEmpty>
             <CommandGroup>
-              {codesData?.map((code) => (
-                <CommandItem
-                  className={
-                    "hover:bg-[#27272a] transition-all " + lexend.className
-                  }
-                  key={code.key}
-                  value={code.value}
-                  onSelect={(currentValue) => {
-                    SETvalue(
-                      currentValue === value
-                        ? ""
-                        : (codesData.find((item) => item.key === currentValue)
-                            ?.value as string)
-                    );
-                    SETopen(false);
-                  }}>
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value === code.key ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {code.value}
-                </CommandItem>
-              ))}
+              <CommandList>
+                {allCodes?.map((code) => (
+                  <CommandItem
+                    className={
+                      "hover:bg-[#27272a] transition-all " + lexend.className
+                    }
+                    key={code._id}
+                    value={code.value}
+                    onSelect={SETvalue}>
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === code.value ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {code.value}
+                  </CommandItem>
+                ))}
+              </CommandList>
             </CommandGroup>
           </Command>
         </PopoverContent>
       </Popover>
 
-      <Button
-        variant={"destructive"}
-        className="w-full"
-        onClick={async () => {
-          deleteCode(value);
-          SETvalue("");
-          SETopen(false);
-        }}>
+      <Button variant={"destructive"} className="w-full" onClick={onDeleteCode}>
         Delete Code
       </Button>
     </section>
@@ -121,3 +109,16 @@ function DeleteCode({ deleteCode }: { deleteCode: (codeName: string) => any }) {
 }
 
 export default memo(DeleteCode);
+
+/**
+ * 
+ * onSelect={(currentValue) => {
+                    SETvalue(
+                      currentValue === value
+                        ? ""
+                        : (allCodes.find((item) => item.key === currentValue)
+                            ?.value as string)
+                    );
+                    SETopen(false);
+                  }}
+ */

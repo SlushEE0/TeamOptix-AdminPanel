@@ -2,13 +2,13 @@ import { nextui } from "@nextui-org/theme";
 import type { Config } from "tailwindcss";
 
 const config = {
-  darkMode: "class",
+  darkMode: ["class"],
   content: [
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
-    "./node_modules/@nextui-org/**/*.{js,ts,tsx,ts}"
+    "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}"
   ],
   prefix: "",
   theme: {
@@ -16,11 +16,7 @@ const config = {
       center: true,
       padding: "2rem",
       screens: {
-        sm: "640px",
-        md: "768px",
-        lg: "1024px",
-        xl: "1280px",
-        "2xl": "1536px"
+        "2xl": "1400px"
       }
     },
     extend: {

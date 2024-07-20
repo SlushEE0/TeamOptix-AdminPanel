@@ -4,7 +4,8 @@ import { WithId, ObjectId } from "mongodb";
 
 import { appendFBdata } from "@/db/firebase";
 import { mongoReq, mongo_parseDocId } from "@/db/mongo";
-import { t_MongoUserData } from "@/lib/types";
+import { t_MongoUserData, t_Role } from "@/lib/types";
+import { firebaseAdminApp } from "@/db/firebaseAdmin";
 
 export async function getUserDataByID(id: string) {
   if (id.length !== 24) return null;
@@ -22,3 +23,13 @@ export async function getUserDataByID(id: string) {
   return appendFBdata(json);
 }
 
+export async function changeRole(role: t_Role, uid: string) {
+  let claims: any = {
+    admin: null,
+    member: null,
+    certified: null
+  };
+  claims[role] = true;
+
+  firebaseAdminApp.auth().setCustomUserClaims(uid, claims);
+}

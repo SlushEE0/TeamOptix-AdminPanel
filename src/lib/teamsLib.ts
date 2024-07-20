@@ -1,3 +1,4 @@
+import { randomInt } from "crypto";
 import { t_TeamsObj } from "./types";
 
 export const teams = [
@@ -36,11 +37,14 @@ export const teams = [
 ] as t_TeamsObj[];
 
 export function getRandomTeam(exclude?: t_TeamsObj[]) {
-  const randomIndex = Math.floor(Math.random() * teams.length - 1);
-  const randomTeam = teams[randomIndex];
+  const newArr = teams.filter((team) => {
+    if (exclude?.some((item) => item.num === team.num)) return null;
 
-  if (exclude?.some((item) => item.num === randomTeam.num))
-    return getRandomTeam(exclude);
+    return true;
+  });
+
+  const randomIndex = Math.round(Math.random() * newArr.length - 0.5);
+  const randomTeam = newArr[randomIndex];
 
   return randomTeam;
 }

@@ -1,10 +1,8 @@
 "use client";
 
 import React, { memo, useContext, useEffect, useRef, useState } from "react";
-import { Lexend } from "next/font/google";
 import { useRouter } from "next/navigation";
 
-import { Spinner } from "@nextui-org/spinner";
 import {
   Table,
   TableHeader,
@@ -13,22 +11,16 @@ import {
   TableRow,
   TableCell,
   SortDescriptor,
+  Spinner,
   User
 } from "@nextui-org/react";
 import { NextUIProvider } from "@nextui-org/system";
 
-import { With_id, t_UserData } from "@/lib/types";
+import useOnScreen from "@/lib/useOnScreen";
 import { unixToFancyDate } from "@/lib/utils";
 import { getDocumentCount, getPage } from "./pagination";
-
-import useOnScreen from "@/lib/useOnScreen";
 import { UsersContext } from "./DataWrapper";
-
-const lexend = Lexend({
-  weight: "300",
-  subsets: ["latin"],
-  variable: "--font-sans"
-});
+import toast from "react-hot-toast";
 
 function UsersTable() {
   const [items, SETitems] = useContext(UsersContext);
@@ -124,7 +116,9 @@ function UsersTable() {
   };
 
   const onNameClicked = function (e: React.Key) {
+    const loader = toast.loading(`Redirecting`);
     router.push(("/user/" + e) as string);
+    toast.remove(loader);
   };
 
   return (
@@ -142,8 +136,7 @@ function UsersTable() {
             </div>
           ) : null
         }
-        onRowAction={onNameClicked}
-        className={`${lexend.className}`}>
+        onRowAction={onNameClicked}>
         <TableHeader>
           <TableColumn key={"user"} allowsSorting>
             User
@@ -158,7 +151,7 @@ function UsersTable() {
             Last Check In
           </TableColumn>
         </TableHeader>
-        <TableBody isLoading={isLoading} items={items}>
+        <TableBody {...{ isLoading, items }}>
           {(user) => {
             return (
               <TableRow

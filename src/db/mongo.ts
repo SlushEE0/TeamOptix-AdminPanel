@@ -119,11 +119,11 @@ export async function findAndDeleteCode(codeName: string) {
   using usingCol = await mongoReq((db) => {
     return db.collection("settings").findOneAndDelete({
       value: codeName
-    });
+    }) as Promise<WithId<t_Code>>;
   })
 
 
-  return usingCol.ret ? mongo_parseDocId<t_Code>(usingCol.ret) : null;
+  return usingCol.ret ? mongo_parseDocId(usingCol.ret) : null;
 }
 
 export async function getUsersCol() {

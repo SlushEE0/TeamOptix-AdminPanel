@@ -28,7 +28,6 @@ export default function LoginForm() {
     const pass = formData.get("password")?.toString() || "";
 
     const res = await validateAuth(email, pass);
-    toast.remove(loader);
 
     console.log(AuthStates.UNAUTHORIZED);
     switch (res) {
@@ -46,6 +45,7 @@ export default function LoginForm() {
         toast.error("Incorrect email/password");
         break;
     }
+    toast.remove(loader);
   };
 
   const onGsignIn = function () {

@@ -24,12 +24,20 @@ export type t_UserRecord = {
     [key: string]: any;
   };
   displayName: string;
+  role?: t_Role;
 };
 
 export type t_Code = {
   value: string;
-  key: "checkInPassword" | "checkOutPassword" | "attendanceOverride";
+  key: t_CodeType;
 };
+
+export type t_CodeType =
+  | "checkInPassword"
+  | "checkOutPassword"
+  | "attendanceOverride";
+
+export type t_Role = "certified" | "member" | "admin";
 
 export interface t_UserData extends t_MongoUserData, t_UserRecord {}
 

@@ -21,7 +21,7 @@ export default function PasswordBlock() {
       />
       <Button
         variant={"secondary"}
-        className="w-10 p-1.5"
+        className="size-10 p-1.5"
         type="button"
         onClick={() => {
           SETpasswordVisible((curr) => !curr);

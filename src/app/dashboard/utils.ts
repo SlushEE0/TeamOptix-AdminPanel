@@ -1,7 +1,13 @@
 "use server";
 
-import { getUserDataWithUid } from "../../db/firebase";
-import { findAndDeleteCode, getCodesCol, getUsersCol } from "../../db/mongo";
+import { t_Code, t_CodeType } from "@/lib/types";
+import { getUserDataWithUid } from "@/db/firebase";
+import {
+  findAndDeleteCode,
+  getCodesCol,
+  getUsersCol,
+  mongoReq
+} from "@/db/mongo";
 
 export async function getAllUserData() {
   const usersCol = await getUsersCol();
@@ -21,4 +27,14 @@ export async function getAllCodes() {
 
 export async function deleteCode(value: string) {
   return findAndDeleteCode(value);
+}
+
+export async function createCode(code: t_Code) {
+  return mongoReq(async (db) => {
+    const doc = await db.collection("settings").insertOne(code);
+
+    if (doc.insertedId) return doc.insertedId.toJSON();
+
+    return (await db.collection("settings").findOne(code))?._id.toJSON();
+  });
 }

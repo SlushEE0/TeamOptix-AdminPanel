@@ -9,11 +9,14 @@ import UsersTable from "./UsersTable";
 import CodesTable from "./CodesTable";
 import DeleteCode from "./DeleteCode";
 import CreateCode from "./CreateCode";
+import CreateUser from "./CreateUser";
 
 type CodesTableData = With_id<t_Code>[];
 type UsersTableData = With_id<t_UserData>[];
 
-export const CodesContext = createContext<CodesTableData>(null as any);
+export const CodesContext = createContext<
+  [CodesTableData, Dispatch<SetStateAction<CodesTableData>>]
+>(null as any);
 export const UsersContext = createContext<
   [UsersTableData, Dispatch<SetStateAction<UsersTableData>>]
 >(null as any);
@@ -22,9 +25,7 @@ type props = {
   initalCodesData: CodesTableData;
 };
 
-export default function DataWrapper({
-  initalCodesData,
-}: props) {
+export default function DataWrapper({ initalCodesData }: props) {
   const [usersTableData, SETusersTableData] = useState<UsersTableData>([]);
   const [codesTableData, SETcodesTableData] =
     useState<CodesTableData>(initalCodesData);
@@ -40,8 +41,8 @@ export default function DataWrapper({
 
   return (
     <section className="bg-bg-light w-full h-full p-4 flex flex-wrap gap-3 justify-center overflow-x-hidden">
-      <CodesContext.Provider value={codesTableData}>
-        <section className="rounded-sm h-[calc(100%-16rem-1rem)] w-full grid grid-cols-3 grid-rows-1 gap-3">
+      <CodesContext.Provider value={[codesTableData, SETcodesTableData]}>
+        <section className="rounded-sm h-[calc(100%-16rem-1rem)] w-full grid grid-cols-3 grid-rows-1 gap-3 overflow-x-hidden">
           <UsersContext.Provider value={[usersTableData, SETusersTableData]}>
             <div className="lg:col-span-2 w-full max-h-full border overflow-scroll col-span-3 rounded-sm p-4 bg-background">
               <UsersTable />
@@ -56,7 +57,10 @@ export default function DataWrapper({
             <CreateCode />
           </div>
           <div className="border border-green-600 rounded-sm aspect-square h-full p-4">
-            <DeleteCode deleteCode={deleteCodeAndRefetch} />
+            <DeleteCode />
+          </div>
+          <div className="border border-green-600 rounded-sm aspect-square h-full p-4">
+            <CreateUser />
           </div>
         </section>
       </CodesContext.Provider>

@@ -23,17 +23,15 @@ const lexend = Lexend({
 
 function CodesTable() {
   const [sortDescriptor, SETsortDescriptor] = useState<SortDescriptor>({});
-  const [tableData, SETtableData] = useState(useContext(CodesContext));
-  const subscription_codes = useContext(CodesContext);
+  const [tableData, SETtableData] = useState(useContext(CodesContext)[0]);
+  const [allCodes, SETallCodes] = useContext(CodesContext);
 
   useEffect(() => {
-    SETtableData(subscription_codes);
+    SETtableData(allCodes);
     sorter({});
-  }, [subscription_codes]);
+  }, [allCodes]);
 
   const sorter = function (descriptor: SortDescriptor) {
-    console.log(descriptor);
-
     switch (descriptor.column) {
       case "value":
         SETtableData((data) => {
@@ -88,12 +86,10 @@ function CodesTable() {
   return (
     <Table
       removeWrapper
+      isHeaderSticky
       aria-label="OptixToolkit Users"
       sortDescriptor={sortDescriptor}
-      onSortChange={sorter}
-      className={
-        "overflow-y-scroll overflow-x-scroll h-full " + lexend.className
-      }>
+      onSortChange={sorter}>
       <TableHeader>
         <TableColumn key={"value"} allowsSorting>
           Code

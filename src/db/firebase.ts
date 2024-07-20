@@ -11,7 +11,7 @@ import {
 
 import { BASE_FETCH_URL, FIREBASE_CONFIG } from "../lib/config";
 import { createSession, deleteSession, getSession } from "@/lib/auth/session";
-import { t_MongoUserData, t_UserRecord, With_id } from "../lib/types";
+import { t_MongoUserData, t_Role, t_UserRecord, With_id } from "../lib/types";
 import { AuthStates } from "@/lib/types";
 
 export const firebaseApp = !getApps().length
@@ -146,7 +146,13 @@ export async function appendFBdataArr(
   const promiseArr = await mongoUserData.map(async (item) => {
     const userData = (await getUserDataWithUid(item.uid)) || {};
 
-    return { ...userData, ...item };
+    const role: t_Role = (() => {
+      if (userData.customClaims?.admin) return "admin";
+      if (userData.customClaims?.certified) return "certified";
+      return "member";
+    })();
+
+    return { ...userData, ...item, role };
   });
 
   return Promise.all(promiseArr);
@@ -155,5 +161,11 @@ export async function appendFBdataArr(
 export async function appendFBdata<T>(mongoUserData: { uid: string } & T) {
   const userData = (await getUserDataWithUid(mongoUserData.uid)) || {};
 
-  return { ...userData, ...mongoUserData };
+  const role = (() => {
+    if (userData.customClaims?.member) return "member";
+    if (userData.customClaims?.admin) return "admin";
+    if (userData.customClaims?.certified) return "member";
+  })();
+
+  return { ...userData, ...mongoUserData, role };
 }
