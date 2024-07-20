@@ -65,8 +65,8 @@ export default function CreateCode() {
       });
 
       //_id will always be defined :)
-      const id = doc.ret || "";
-      const id2 = doc2.ret || "";
+      const id = doc as string;
+      const id2 = doc2 as string;
 
       SETallCodes((curr) => {
         return [
@@ -78,7 +78,7 @@ export default function CreateCode() {
     } else {
       const doc = await createCode({ key: codeType, value: codes.code });
 
-      const id = doc.ret || ""; // _id will always be defined :)
+      const id = doc as string; // _id will always be defined :)
 
       SETallCodes((curr) => {
         return [...curr, { key: codeType, value: codes.code, _id: id }];

@@ -11,10 +11,15 @@ import { Label } from "@/components/ui/label";
 
 import { AuthStates } from "@/lib/types";
 import PasswordBlock from "./ShowPassword";
-import { sessionCheck, validateAuth } from "../../lib/auth/authUtils";
-// import ThirdPartyLogins from "./thirdparty";
+import { validateAuth } from "../../lib/auth/authUtils";
+import { useState } from "react";
+
+import { PRESIDENTS } from "@/lib/config";
+import PresidentDVD from "./PresidentDVD";
 
 export default function LoginForm() {
+  const [yes, SETyes] = useState(false);
+
   const router = useRouter();
 
   // useEffect(() => {
@@ -53,7 +58,7 @@ export default function LoginForm() {
   };
 
   return (
-    <main className="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
+    <main className="w-full lg:grid lg:grid-cols-2">
       <section className="flex items-center justify-center py-12">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
@@ -62,7 +67,7 @@ export default function LoginForm() {
               Login with admin account
             </p>
           </div>
-          <form className="grid gap-4" action={onFormSubmit}>
+          <form className="grid gap-4 z-10" action={onFormSubmit}>
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input name="email" type="email" placeholder="m@example.com" />
@@ -99,93 +104,25 @@ export default function LoginForm() {
           </form>
         </div>
       </section>
-      <section className="hidden bg-muted lg:block">
+      <section className="hidden bg-muted lg:block h-screen">
         <Image
           src="/starryNight.svg"
           alt="Image"
-          width="1920"
-          height="1080"
+          width={"1"}
+          height={"1"}
           className="h-full w-full object-cover"
         />
       </section>
+      {/* {PRESIDENTS.map((pres) => (
+        <PresidentDVD imgPath={pres.imgPath} active={yes} key={pres.name} />
+      ))} */}
+      <PresidentDVD imgPath={"/presidents/NoahSimon.jpeg"} active={yes} />
+      <Button
+        className={"absolute bottom-4 right-4 text-gray-900"}
+        variant={"ghost"}
+        onClick={() => SETyes((yes) => !yes)}>
+        Shennanigans
+      </Button>
     </main>
   );
 }
-
-// function Shennanigans() {
-//   const DVD_SPEED = 2;
-
-//   const [dvdData, SETdvdData] = useState({
-//     x: 0,
-//     y: 0,
-//     invertedX: false,
-//     invertedY: false
-//   });
-//   const [isDvdEnabled, SETisDvdEnabled] = useState(false);
-
-//   const dvdLoop = function () {
-//     let shouldInvertX = dvdData.invertedX;
-//     let shouldInvertY = dvdData.invertedY;
-
-//     if (dvdData.x + DVD_SPEED > window.innerWidth - 150 && !dvdData.invertedX) {
-//       shouldInvertX = true;
-//     }
-
-//     if (
-//       dvdData.y + DVD_SPEED > window.innerHeight - 280 &&
-//       !dvdData.invertedY
-//     ) {
-//       shouldInvertY = true;
-//     }
-
-//     if (dvdData.x - DVD_SPEED < 0 && dvdData.invertedX) {
-//       shouldInvertX = false;
-//     }
-
-//     if (dvdData.y - DVD_SPEED < 0 && dvdData.invertedY) {
-//       shouldInvertY = false;
-//     }
-
-//     const deltaDvdY = (dvdData.invertedY ? -1 : 1) * DVD_SPEED;
-//     const deltaDvdX = (dvdData.invertedX ? -1 : 1) * DVD_SPEED;
-
-//     SETdvdData({
-//       invertedX: shouldInvertX,
-//       invertedY: shouldInvertY,
-//       x: dvdData.x + deltaDvdX,
-//       y: dvdData.y + deltaDvdY
-//     });
-//   };
-
-//   if (isDvdEnabled) {
-//     setTimeout(() => {
-//       dvdLoop();
-//     }, 100);
-//   }
-
-//   return (
-//     <section>
-//       <div
-//         className="z-0 absolute w-[150px] h-min transition-500"
-//         style={{
-//           bottom: `${dvdData.y}px`,
-//           left: `${dvdData.x}px`
-//         }}
-//         hidden={!isDvdEnabled}>
-//         <img
-//           src="/NoahSimon.jpeg"
-//           width={150}
-//           height={280}
-//           className="rounded-xl border-2 border-primary"
-//         />
-//       </div>
-//       <Button
-//         className={
-//           buttonVariants({ variant: "outline" }) + " absolute bottom-4 left-4"
-//         }
-//         onClick={() => SETisDvdEnabled(!isDvdEnabled)}>
-//         Shennanigans
-//       </Button>
-//     </section>
-//   );
-// }

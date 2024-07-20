@@ -16,9 +16,9 @@ export async function getUserDataByID(id: string) {
       .findOne<WithId<t_MongoUserData>>({ _id: new ObjectId(id) });
   });
 
-  if (!doc.ret) return null;
+  if (!doc) return null;
 
-  const json = await mongo_parseDocId(doc.ret);
+  const json = await mongo_parseDocId(doc);
 
   return appendFBdata(json);
 }

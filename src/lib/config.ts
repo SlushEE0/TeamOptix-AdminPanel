@@ -7,3 +7,10 @@ export const ADMIN_CREDENTIALS = {
   FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY,
   FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID
 };
+
+export const PRESIDENTS = [
+  {
+    name: "NoahSimon",
+    imgPath: "/presidents/NoahSimon.jpeg"
+  }
+];

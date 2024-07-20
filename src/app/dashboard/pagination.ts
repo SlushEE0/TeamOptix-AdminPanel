@@ -12,7 +12,7 @@ export async function setPageSize(newSize: number) {
 }
 
 export async function getPage() {
-  using usingPage = await mongoReq((db) => {
+  const doc = await mongoReq((db) => {
     return db
       .collection("users")
       .find({})
@@ -22,16 +22,13 @@ export async function getPage() {
 
   currPage++;
 
-  return appendFBdataArr(
-    await mongo_parseFindCursor<t_MongoUserData>(usingPage.ret)
-  );
+  return appendFBdataArr(await mongo_parseFindCursor<t_MongoUserData>(doc));
 }
 
-
 export async function getDocumentCount() {
-  using usingCol = await mongoReq((db) => {
-    return db.collection('users').estimatedDocumentCount()
-  })
+  const doc = await mongoReq((db) => {
+    return db.collection("users").estimatedDocumentCount();
+  });
 
-  return usingCol.ret;
+  return doc;
 }
