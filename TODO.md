@@ -6,10 +6,14 @@
 #### ``mongo.close()`` on unmount
 
 ***
-# UI/UX
-#### for the love of got make it not look like someone dumped a trash can on the screen (jokes :])
 
 
 TODO:
 -
-- USER PAGE
+- Create User
+- Walkthrough whole app, try to break it yourself
+
+### After That ...
+
+- Create Docker file
+- Think about deployment
