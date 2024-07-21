@@ -124,14 +124,17 @@ export async function getUserDataWithUid(uid: string): Promise<t_UserRecord> {
   let res: any = false;
 
   try {
-    res = await fetch(BASE_FETCH_URL + "/api/db", {
+    res = await fetch(BASE_FETCH_URL + "/api/auth", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        endpoint: "get-user-data",
-        uid
+        endpoint: "get-user",
+        payload: {
+          uid
+          // auth: //insert token
+        }
       })
     }).then((res) => res.json());
   } catch (err) {

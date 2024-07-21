@@ -27,8 +27,6 @@ export default function LoginForm() {
   // }, []);
 
   const onFormSubmit = async function (formData: FormData) {
-    const loader = toast.loading("Authorizing...");
-
     const email = formData.get("email")?.toString() || "";
     const pass = formData.get("password")?.toString() || "";
 
@@ -50,7 +48,8 @@ export default function LoginForm() {
         toast.error("Incorrect email/password");
         break;
     }
-    toast.remove(loader);
+
+    // toast.remove(loader);
   };
 
   const onGsignIn = function () {
@@ -67,9 +66,14 @@ export default function LoginForm() {
               Login with admin account
             </p>
           </div>
-          <form className="grid gap-4 z-10" action={onFormSubmit}>
+          <form
+            className="grid gap-4 z-10"
+            onSubmit={() =>
+              toast.loading("Authorizing ...", { duration: 1000 })
+            }
+            action={onFormSubmit}>
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email</Label>  
               <Input name="email" type="email" placeholder="m@example.com" />
             </div>
             <div className="grid gap-2">

@@ -59,9 +59,9 @@ export default function DataWrapper({ initalCodesData }: props) {
           <div className="border border-green-600 rounded-sm aspect-square h-full p-4">
             <DeleteCode />
           </div>
-          <div className="border border-green-600 rounded-sm aspect-square h-full p-4">
+          {/* <div className="border border-green-600 rounded-sm aspect-square h-full p-4">
             <CreateUser />
-          </div>
+          </div> */}
         </section>
       </CodesContext.Provider>
     </section>

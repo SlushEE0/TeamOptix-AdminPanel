@@ -26,8 +26,8 @@ export async function getUserDataByID(id: string) {
 export async function changeRole(role: t_Role, uid: string) {
   let claims: any = {
     admin: null,
-    member: null,
-    certified: null
+    certified: null,
+    member: true
   };
   claims[role] = true;
 

@@ -92,8 +92,8 @@ export default function Sidebar({ data }: { data: With_id<t_UserData> }) {
           <DialogHeader>
             <DialogTitle>Change User Role</DialogTitle>
             <DialogDescription>
-              Change user's authorization level. Changing to 'admin' will allow
-              user access to this admin panel
+              Change user&apos;s authorization level. Changing to
+              &apos;admin&apos; will allow user access to this admin panel
             </DialogDescription>
           </DialogHeader>
           <section aria-label="main-dialog">

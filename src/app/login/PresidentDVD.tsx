@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import { useState } from "react";
 
 export default function Shennanigans({
@@ -69,8 +71,9 @@ export default function Shennanigans({
           left: `${dvdData.x}px`
         }}
         hidden={!active}>
-        <img
+        <Image
           src={imgPath}
+          alt="Img"
           width={150}
           height={280}
           className="rounded-xl border-2 border-primary"

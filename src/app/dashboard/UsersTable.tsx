@@ -1,6 +1,13 @@
 "use client";
 
-import React, { memo, useContext, useEffect, useRef, useState } from "react";
+import React, {
+  memo,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState
+} from "react";
 import { useRouter } from "next/navigation";
 
 import {
@@ -33,11 +40,7 @@ function UsersTable() {
 
   const router = useRouter();
 
-  useEffect(() => {
-    if (loaderVisible) load();
-  }, [loaderVisible]);
-
-  async function load() {
+  const load = useCallback(async () => {
     const newItems = await getPage();
 
     SETitems((currItems) => {
@@ -47,7 +50,11 @@ function UsersTable() {
     if ((await getDocumentCount()) === items.length) {
       SETisLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    if (loaderVisible) load();
+  }, [loaderVisible, load]);
 
   const sorter = function (descriptor: SortDescriptor) {
     console.log(descriptor);

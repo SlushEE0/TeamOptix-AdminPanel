@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -26,8 +27,11 @@ export default function PasswordBlock() {
         onClick={() => {
           SETpasswordVisible((curr) => !curr);
         }}>
-        <img
+        <Image
           src={passwordVisible ? "eye-invisible.svg" : "eye-visible.svg"}
+          alt="Password Visibility"
+          width={40}
+          height={40}
           style={{
             filter:
               "invert(71%) sepia(100%) saturate(0%) hue-rotate(320deg) brightness(101%) contrast(103%)"

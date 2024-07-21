@@ -10,7 +10,7 @@ export default function useOnScreen(ref: RefObject<HTMLElement>) {
 
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
-  }, []);
+  }, [ref]);
 
   return isIntersecting;
 }

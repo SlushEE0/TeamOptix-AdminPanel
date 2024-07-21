@@ -1,8 +1,8 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { JWTVerifyResult, SignJWT, jwtVerify } from "jose";
-import { firebaseAuth } from "../../db/firebase";
+import { SignJWT, jwtVerify } from "jose";
+import { firebaseAuth } from "@/db/firebase";
 import { signOut } from "firebase/auth";
 
 const jwtSecret = new TextEncoder().encode("Toolkit-AdminPanel");

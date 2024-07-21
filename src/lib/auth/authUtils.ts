@@ -21,7 +21,6 @@ export async function sessionCheck() {
 }
 
 export async function getGsignInLink() {
-  firebaseAdminApp.auth().getProviderConfig("google.com");
-
+  // firebaseAdminApp.auth().;
   // signIn
 }
