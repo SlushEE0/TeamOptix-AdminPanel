@@ -1,14 +1,18 @@
-FROM oven/bun:1
+FROM node:22-bookworm-slim 
 
 RUN apt-get -y update && \
   apt-get install
+RUN npm install -g bun
 
-COPY . /adminpanel
 WORKDIR /adminpanel
 
+COPY package.json bun.lockb ./
 RUN bun install
+
+COPY . .
+
 RUN bun run build
 
-CMD [ "bun", "run", "start" ]
+CMD [ "npm", "run", "start" ]
 
-EXPOSE 443 80 3000
+EXPOSE 3000
