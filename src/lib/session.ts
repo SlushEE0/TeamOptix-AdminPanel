@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
-import { firebaseAuth } from "@/db/firebase";
+import { firebaseAuth } from "@/db/firebaseApp";
 import { signOut } from "firebase/auth";
 
 const jwtSecret = new TextEncoder().encode("Toolkit-AdminPanel");

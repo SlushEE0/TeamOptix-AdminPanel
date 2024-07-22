@@ -1,28 +1,41 @@
 "use server";
 
-import { mongoReq, mongo_parseFindCursor } from "@/db/mongo";
+import { mongoDisconnect, mongoReq, mongo_parseFindCursor } from "@/db/mongo";
 import { t_MongoUserData } from "@/lib/types";
-import { appendFBdataArr } from "@/db/firebase";
+import { appendFBdataArr } from "@/db/firebaseUtils";
+import { WithId } from "mongodb";
 
 let pageSize = 20;
-let currPage = 1;
+let docsRead = 0;
 
 export async function setPageSize(newSize: number) {
   pageSize = newSize;
 }
 
 export async function getPage() {
-  const doc = await mongoReq((db) => {
-    return db
-      .collection("users")
-      .find({})
-      .skip((currPage - 1) * pageSize)
-      .limit(pageSize);
+  const doc = await mongoReq(async (db) => {
+    const data = await mongo_parseFindCursor(
+      db
+        .collection("users")
+        .find<WithId<t_MongoUserData>>({})
+        .skip(docsRead)
+        .limit(pageSize)
+    );
+
+    const count = await db.collection("users").countDocuments(
+      {},
+      {
+        skip: docsRead,
+        limit: pageSize
+      }
+    );
+
+    return [data, count] as const;
   });
 
-  currPage++;
+  docsRead += doc[1];
 
-  return appendFBdataArr(await mongo_parseFindCursor<t_MongoUserData>(doc));
+  return appendFBdataArr(doc[0]);
 }
 
 export async function getDocumentCount() {
@@ -31,4 +44,16 @@ export async function getDocumentCount() {
   });
 
   return doc;
+}
+
+export async function isLoadingFinished(itemsLen?: number) {
+  // if (docsRead !== itemsLen)
+  //   throw Error(
+  //     `Items length does not equal docsRead. ${itemsLen}, ${docsRead}`
+  //   );
+
+  if ((await getDocumentCount()) !== docsRead) return false;
+
+  mongoDisconnect();
+  return true;
 }

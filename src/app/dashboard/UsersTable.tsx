@@ -25,15 +25,17 @@ import { NextUIProvider } from "@nextui-org/system";
 
 import useOnScreen from "@/lib/useOnScreen";
 import { unixToFancyDate } from "@/lib/utils";
-import { getDocumentCount, getPage } from "./pagination";
+import { getPage, isLoadingFinished } from "./pagination";
 import { UsersContext } from "./DataWrapper";
 import toast from "react-hot-toast";
 
 function UsersTable() {
   const [items, SETitems] = useContext(UsersContext);
+  const [sortedItems, SETsortedItems] = useState(items);
+  const [autoLoad, SETautoLoad] = useState(false);
 
   const [isLoading, SETisLoading] = React.useState(true);
-  const [sortDescriptor, SETsortDescriptor] = useState<SortDescriptor>();
+  const [sortDescriptor, SETsortDescriptor] = useState<SortDescriptor>({});
 
   const loaderRef = useRef<HTMLDivElement>(null);
   const loaderVisible = useOnScreen(loaderRef);
@@ -46,8 +48,11 @@ function UsersTable() {
     SETitems((currItems) => {
       return [...currItems, ...newItems];
     });
+    SETsortedItems((currItems) => {
+      return [...currItems, ...newItems];
+    });
 
-    if ((await getDocumentCount()) === items.length) {
+    if (await isLoadingFinished(items.length)) {
       SETisLoading(false);
     }
   }, []);
@@ -56,12 +61,16 @@ function UsersTable() {
     if (loaderVisible) load();
   }, [loaderVisible, load]);
 
+  useEffect(() => {
+    sorter(sortDescriptor);
+  }, [items]);
+
   const sorter = function (descriptor: SortDescriptor) {
     console.log(descriptor);
 
     switch (descriptor.column) {
       case "hours":
-        SETitems((data) => {
+        SETsortedItems((data) => {
           if (descriptor.direction === "ascending") {
             return data.toSorted((a, b) => a.seconds - b.seconds);
           } else if (descriptor.direction === "descending") {
@@ -73,7 +82,7 @@ function UsersTable() {
         return SETsortDescriptor(descriptor);
 
       case "meetings":
-        SETitems((data) => {
+        SETsortedItems((data) => {
           if (descriptor.direction === "ascending") {
             return data.toSorted((a, b) => a.meetingCount - b.meetingCount);
           } else if (descriptor.direction === "descending") {
@@ -85,7 +94,7 @@ function UsersTable() {
         return SETsortDescriptor(descriptor);
 
       case "user":
-        SETitems((data) => {
+        SETsortedItems((data) => {
           if (descriptor.direction === "ascending") {
             return data.toSorted((a, b) => {
               if (!a.displayName || !b.displayName) return -1;
@@ -106,7 +115,7 @@ function UsersTable() {
         return SETsortDescriptor(descriptor);
 
       case "lastCheckIn":
-        SETitems((data) => {
+        SETsortedItems((data) => {
           if (descriptor.direction === "ascending") {
             return data.toSorted((a, b) => a.lastCheckIn - b.lastCheckIn);
           } else if (descriptor.direction === "descending") {
@@ -158,7 +167,7 @@ function UsersTable() {
             Last Check In
           </TableColumn>
         </TableHeader>
-        <TableBody {...{ isLoading, items }}>
+        <TableBody {...{ isLoading, items: sortedItems }}>
           {(user) => {
             return (
               <TableRow

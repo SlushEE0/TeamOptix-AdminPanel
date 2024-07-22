@@ -1,7 +1,7 @@
 "use server";
 
 import { t_Code, t_CodeType } from "@/lib/types";
-import { getUserDataWithUid } from "@/db/firebase";
+import { getUserDataWithUid } from "@/db/firebaseUtils";
 import {
   findAndDeleteCode,
   getCodesCol,
