@@ -6,7 +6,7 @@ RUN npm install -g bun
 
 WORKDIR /adminpanel
 
-COPY package.json bun.lockb ./
+COPY package*.json ./
 RUN bun install
 
 COPY . .
