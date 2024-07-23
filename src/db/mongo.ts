@@ -1,36 +1,56 @@
 import { Db, FindCursor, MongoClient, WithId, Document } from "mongodb";
 import { BASE_FETCH_URL, MONGO_URL } from "../lib/config";
-import { getCurrentUser } from "./firebase";
+import { getCurrentUser } from "./firebaseUtils";
 import { With_id, t_Code, t_MongoUserData } from "../lib/types";
 
 const mongoUrl = MONGO_URL;
-let mongoClient: MongoClient;
+let mongoClient: MongoClient | null;
 
-export async function mongoConnect() {
+export async function mongoConnect(forceNew?: boolean) {
   let connectionUrl = mongoUrl;
   if (!connectionUrl) {
     connectionUrl = await updateMongoUrl();
   }
 
-  mongoClient = mongoClient || new MongoClient(connectionUrl || "");
+  if (forceNew) {
+    mongoClient = await new MongoClient(connectionUrl || "").connect();
+  } else {
+    mongoClient =
+      (await mongoClient) ||
+      (await new MongoClient(connectionUrl || "").connect());
+  }
 
-  return mongoClient.connect();
+  return mongoClient;
 }
 
 type mongoFunction<T> = (db: Db) => T;
-export async function mongoReq<T>(mongoFunction: mongoFunction<T>) {
+export async function mongoReq<T>(
+  mongoFunction: mongoFunction<T>,
+  close?: boolean
+) {
   const db = (await mongoConnect()).db();
 
-  return mongoFunction(db);
+  let data: T;
+
+  try {
+    data = mongoFunction(db);
+  } catch (e) {
+    console.warn(e);
+  } finally {
+    data = mongoFunction((await mongoConnect(true)).db());
+  }
+
+  if (close) await mongoDisconnect();
+
+  return data;
 }
 
 export async function mongoDisconnect() {
-  mongoClient.close();
+  mongoClient?.close();
+  return (mongoClient = null);
 }
 
-export async function mongo_parseFindCursor<T>(
-  cursor: FindCursor<WithId<Document>>
-) {
+export async function mongo_parseFindCursor<T>(cursor: FindCursor<WithId<T>>) {
   const data = (await cursor.toArray()).map((item) => {
     return {
       ...item,
@@ -46,7 +66,7 @@ export async function mongo_parseFindCursor<T>(
 export async function mongo_parseDocId<T>(doc: WithId<T>) {
   return {
     ...doc,
-    _id: doc._id.toJSON()
+    _id: doc._id.toString()
   } as With_id<T>;
 }
 
@@ -96,7 +116,9 @@ export async function mongo_getLimitedUsersCol(limit: number, skip?: number) {
 
 export async function getCodesCol() {
   return mongoReq((db) => {
-    return mongo_parseFindCursor<t_Code>(db.collection("settings").find({}));
+    return mongo_parseFindCursor(
+      db.collection("settings").find<WithId<t_Code>>({})
+    );
   });
 }
 
@@ -118,8 +140,8 @@ export async function findAndDeleteCode(codeName: string) {
 
 export async function getUsersCol() {
   return mongoReq((db) => {
-    return mongo_parseFindCursor<t_MongoUserData>(
-      db.collection("users").find(
+    return mongo_parseFindCursor(
+      db.collection("users").find<WithId<t_MongoUserData>>(
         {},
         {
           limit: 50

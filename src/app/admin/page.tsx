@@ -1,3 +1,4 @@
-export default async function App() {
-  return <h1>For testing thingies</h1>;
+export default function App({})
+{
+  return <h1>Teesting</h1>
 }

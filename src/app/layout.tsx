@@ -4,7 +4,6 @@ import { Open_Sans } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 
 import "./globals.css";
-import { MongoClientConnection } from "@/components/mongo/MongoClientConnection";
 
 const openSans = Open_Sans({
   weight: "400",
@@ -27,7 +26,6 @@ export default function RootLayout({
       <body className={"bg-background w-full h-[100vh]"}>
         {children}
         <Toaster position="bottom-right" />
-        <MongoClientConnection />
       </body>
     </html>
   );

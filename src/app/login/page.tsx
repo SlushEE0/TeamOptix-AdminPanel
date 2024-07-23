@@ -1,24 +1,27 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-
 import toast from "react-hot-toast";
+import {
+  signInWithRedirect
+} from "firebase/auth";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+import { PRESIDENTS } from "@/lib/config";
+import { firebaseAuth, provider_google } from "@/db/firebaseApp";
 import { AuthStates } from "@/lib/types";
 import PasswordBlock from "./ShowPassword";
-import { validateAuth } from "../../lib/auth/authUtils";
-import { useState } from "react";
-
-import { PRESIDENTS } from "@/lib/config";
+import { validateAuth } from "./utils";
 import PresidentDVD from "./PresidentDVD";
 
 export default function LoginForm() {
-  const [yes, SETyes] = useState(false);
+  const [runDVD, SETrunDVD] = useState(false);
 
   const router = useRouter();
 
@@ -52,8 +55,12 @@ export default function LoginForm() {
     // toast.remove(loader);
   };
 
-  const onGsignIn = function () {
-    toast.error("Sorry, this feature is in progress");
+  const onGsignIn = async function () {
+    toast.error("Sorry, this feature is under construction")
+
+    // const loader = toast.loading("Redirecting");
+    // await signInWithRedirect(firebaseAuth, provider_google);
+    // toast.dismiss(loader);
   };
 
   return (
@@ -73,7 +80,7 @@ export default function LoginForm() {
             }
             action={onFormSubmit}>
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>  
+              <Label htmlFor="email">Email</Label>
               <Input name="email" type="email" placeholder="m@example.com" />
             </div>
             <div className="grid gap-2">
@@ -120,11 +127,11 @@ export default function LoginForm() {
       {/* {PRESIDENTS.map((pres) => (
         <PresidentDVD imgPath={pres.imgPath} active={yes} key={pres.name} />
       ))} */}
-      <PresidentDVD imgPath={"/presidents/NoahSimon.jpeg"} active={yes} />
+      <PresidentDVD imgPath={"/presidents/NoahSimon.jpeg"} active={runDVD} />
       <Button
         className={"absolute bottom-4 right-4 text-gray-900"}
         variant={"ghost"}
-        onClick={() => SETyes((yes) => !yes)}>
+        onClick={() => SETrunDVD((yes) => !yes)}>
         Shennanigans
       </Button>
     </main>

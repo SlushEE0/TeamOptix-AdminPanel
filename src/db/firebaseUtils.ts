@@ -1,25 +1,17 @@
-import { FirebaseError, getApp, getApps, initializeApp } from "firebase/app";
-// import admin from "firebase-admin";
+import { FirebaseError } from "firebase/app";
 import {
   browserLocalPersistence,
-  getAuth,
-  GoogleAuthProvider,
   setPersistence,
   signInWithEmailAndPassword,
   signInWithPopup
 } from "firebase/auth";
 
-import { BASE_FETCH_URL, FIREBASE_CONFIG } from "../lib/config";
-import { createSession, deleteSession, getSession } from "@/lib/auth/session";
+import { BASE_FETCH_URL } from "../lib/config";
+import { createSession, deleteSession, getSession } from "@/lib/session";
 import { t_MongoUserData, t_Role, t_UserRecord, With_id } from "../lib/types";
 import { AuthStates } from "@/lib/types";
 
-export const firebaseApp = !getApps().length
-  ? initializeApp(FIREBASE_CONFIG)
-  : getApp();
-
-export const firebaseAuth = getAuth(firebaseApp);
-export const provider = new GoogleAuthProvider();
+import { firebaseAuth, provider_google } from "./firebaseApp";
 
 type userOptions = "user" | "admin" | "certified";
 async function authorizeUser(
@@ -91,7 +83,7 @@ export async function signIn_google() {
 
   let user;
   try {
-    user = (await signInWithPopup(firebaseAuth, provider)).user;
+    user = (await signInWithPopup(firebaseAuth, provider_google)).user;
   } catch (e) {
     return console.log("User not Found");
   }
