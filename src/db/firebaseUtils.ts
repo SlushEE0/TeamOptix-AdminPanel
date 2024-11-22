@@ -11,7 +11,7 @@ import { createSession, deleteSession, getSession } from "@/lib/session";
 import { t_MongoUserData, t_Role, t_UserRecord, With_id } from "../lib/types";
 import { AuthStates } from "@/lib/types";
 
-import { firebaseAuth, provider_google } from "./firebaseApp";
+import { firebaseAuth, provider_google } from "./firebaseInit";
 
 type userOptions = "user" | "admin" | "certified";
 async function authorizeUser(
@@ -20,7 +20,7 @@ async function authorizeUser(
   email = "",
   persist = true
 ): Promise<AuthStates> {
-  let res: any = false;
+  let res: boolean | "ERROR" | "ECONNREFUSED" = "ERROR";
 
   try {
     res = await fetch(BASE_FETCH_URL + "/api/auth", {
@@ -36,8 +36,10 @@ async function authorizeUser(
         }
       })
     }).then((res) => res.json());
-  } catch (err) {
+  } catch (err: any) {
     console.warn(err);
+
+    res = "ECONNREFUSED";
   }
 
   console.log(`${email}-Authorize`, res);
@@ -47,6 +49,8 @@ async function authorizeUser(
       return AuthStates.AUTHORIZED;
     case res === false:
       return AuthStates.UNAUTHORIZED;
+    case res === "ECONNREFUSED":
+      return AuthStates.ECONNREFUSED;
     default:
       return AuthStates.ERROR;
   }

@@ -1,28 +1,27 @@
 "use server";
 
-import { WithId, ObjectId } from "mongodb";
+import { ObjectId } from "mongodb";
 
 import { appendFBdata } from "@/db/firebaseUtils";
-import { mongoReq, mongo_parseDocId } from "@/db/mongo";
-import { t_MongoUserData, t_Role } from "@/lib/types";
-import { firebaseAdminApp } from "@/db/firebaseAdmin";
+import models from "@/db/mongo";
+import { t_Role } from "@/lib/types";
+import { firebaseAdminApp } from "@/db/firebaseInit";
 
 export async function getUserDataByID(id: string) {
   if (id.length !== 24) return null;
 
-  const doc = await mongoReq(async (db) => {
-    const doc = await db
-      .collection("users")
-      .findOne<WithId<t_MongoUserData>>({ _id: new ObjectId(id) });
+  const doc = await models.User.findOne({ _id: new ObjectId(id) })
+    .lean()
+    .exec();
+  const stringifiedIdDoc = {
+    ...doc,
+    _id: doc?._id.toString(),
+    uid: doc?.uid || ""
+  };
 
-    return doc ? mongo_parseDocId(doc) : null;
-  });
+  if (!doc?.uid) return null;
 
-  if (!doc) return null;
-
-  const json = await mongo_parseDocId(doc);
-
-  return appendFBdata(json);
+  return appendFBdata(stringifiedIdDoc);
 }
 
 export async function changeRole(role: t_Role, uid: string) {

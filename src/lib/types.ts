@@ -45,7 +45,8 @@ export enum AuthStates {
   AUTHORIZED,
   UNAUTHORIZED,
   UNKNOWN,
-  ERROR
+  ERROR,
+  ECONNREFUSED
 }
 
 // Make tables modular

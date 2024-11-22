@@ -5,20 +5,17 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import {
-  signInWithRedirect
-} from "firebase/auth";
+import { signInWithRedirect } from "firebase/auth";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-import { PRESIDENTS } from "@/lib/config";
-import { firebaseAuth, provider_google } from "@/db/firebaseApp";
-import { AuthStates } from "@/lib/types";
-import PasswordBlock from "./ShowPassword";
-import { validateAuth } from "./utils";
 import PresidentDVD from "./PresidentDVD";
+import PasswordBlock from "./ShowPassword";
+
+import { validateAuth } from "./utils";
+import { PRESIDENTS } from "@/lib/config";
+import { AuthStates } from "@/lib/types";
 
 export default function LoginForm() {
   const [runDVD, SETrunDVD] = useState(false);
@@ -40,11 +37,16 @@ export default function LoginForm() {
       case AuthStates.AUTHORIZED:
         // console.log("AUTHORIZED");
         toast.success("Authorized 🙂");
+        toast.loading("Redirecting ...");
         router.push("/dashboard");
         break;
       case AuthStates.UNAUTHORIZED:
         // console.log("UNAUTHORIZED");
         toast.error("Unauthorized 😔");
+        break;
+      case AuthStates.ERROR:
+        // console.log("ERROR");
+        toast.error("Backend Is Down :(", { duration: 20000 });
         break;
       default:
         console.log("NO USER");
@@ -56,7 +58,7 @@ export default function LoginForm() {
   };
 
   const onGsignIn = async function () {
-    toast.error("Sorry, this feature is under construction")
+    toast.error("Sorry, this feature is under construction");
 
     // const loader = toast.loading("Redirecting");
     // await signInWithRedirect(firebaseAuth, provider_google);
