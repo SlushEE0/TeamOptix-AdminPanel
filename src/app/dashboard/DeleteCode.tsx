@@ -45,7 +45,7 @@ function DeleteCode() {
 
     SETallCodes((allCodes) =>
       allCodes.filter((code) => {
-        if (code._id === deletedDoc?._id) return false;
+        if (code._id === deletedDoc?._id.toString()) return false;
 
         return true;
       })
