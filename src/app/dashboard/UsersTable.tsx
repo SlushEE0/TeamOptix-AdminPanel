@@ -35,7 +35,7 @@ function UsersTable() {
   const [sortedItems, SETsortedItems] = useState(items);
   const [autoLoad, SETautoLoad] = useState(false);
 
-  const [isLoading, SETisLoading] = React.useState(true);
+  const [isLoading, SETisLoading] = useState(true);
   const [sortDescriptor, SETsortDescriptor] = useState<SortDescriptor>({});
 
   const loaderRef = useRef<HTMLDivElement>(null);

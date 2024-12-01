@@ -1,9 +1,15 @@
 "use client";
 
-import { Dispatch, SetStateAction, createContext, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  createContext,
+  useEffect,
+  useState
+} from "react";
 
 import { t_UserData, t_Code, With_id, t_Role } from "@/lib/types";
-import { deleteCode } from "@/app/dashboard/utils";
+import { getAllCodes } from "@/app/dashboard/utils";
 
 import UsersTable from "./UsersTable";
 import CodesTable from "./CodesTable";
@@ -20,14 +26,15 @@ export const UsersContext = createContext<
   [UsersTableData, Dispatch<SetStateAction<UsersTableData>>]
 >(null as any);
 
-type props = {
-  initalCodesData: CodesTableData;
-};
-
-export default function DataWrapper({ initalCodesData }: props) {
+export default function DataWrapper() {
   const [usersTableData, SETusersTableData] = useState<UsersTableData>([]);
-  const [codesTableData, SETcodesTableData] =
-    useState<CodesTableData>(initalCodesData);
+  const [codesTableData, SETcodesTableData] = useState<CodesTableData>([]);
+
+  useEffect(() => {
+    (async () => {
+      SETcodesTableData(await getAllCodes());
+    })();
+  }, []);
 
   return (
     <section className="w-screen h-screen">
