@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 
 import { AccountCreationStates } from "@/lib/types";
 import { createAccount } from "./utils";
+import PasswordBlock from "@/components/PasswordBlock";
 
 export default function CreateAccount() {
   const onFormSubmit = async function (formData: FormData) {
@@ -92,12 +93,8 @@ export default function CreateAccount() {
               </div>
               <div className="flex gap-2">
                 <div className="w-full grid gap-2">
-                  <Input name="password" placeholder="Password" required />
-                  <Input
-                    name="confirmPassword"
-                    placeholder="Confirm Password"
-                    required
-                  />
+                  <PasswordBlock name="password" required />
+                  <PasswordBlock name="confirmPassword" required />
                 </div>
               </div>
             </div>

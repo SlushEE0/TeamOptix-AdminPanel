@@ -8,17 +8,27 @@ import { Input } from "@/components/ui/input";
 
 export let is_passwordVisible: boolean = false;
 
-export default function PasswordBlock() {
-  const [passwordVisible, SETpasswordVisible] = useState(false);
+type props = {
+  name: string;
+  defaultValue?: boolean;
+  required?: boolean;
+};
+
+export default function PasswordBlock({
+  name,
+  defaultValue = false,
+  required = true
+}: props) {
+  const [passwordVisible, SETpasswordVisible] = useState(defaultValue);
 
   is_passwordVisible = passwordVisible;
 
   return (
-    <>
+    <section className="flex gap-2">
       <Input
-        name="password"
+        name={name}
         type={passwordVisible ? "text" : "password"}
-        required
+        required={required}
       />
       <Button
         variant={"secondary"}
@@ -38,6 +48,6 @@ export default function PasswordBlock() {
           }}
         />
       </Button>
-    </>
+    </section>
   );
 }

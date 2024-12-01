@@ -5,13 +5,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { signInWithRedirect } from "firebase/auth";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import PresidentDVD from "./PresidentDVD";
-import PasswordBlock from "./ShowPassword";
+import PasswordBlock from "../../components/PasswordBlock";
 
 import { validateAuth } from "./utils";
 import { PRESIDENTS } from "@/lib/config";
@@ -94,9 +93,7 @@ export default function LoginForm() {
                   Forgot your password?
                 </Link>
               </div>
-              <div className="flex gap-2">
-                <PasswordBlock />
-              </div>
+              <PasswordBlock name="password" required />
             </div>
             <Button type="submit" className="w-full">
               Login
