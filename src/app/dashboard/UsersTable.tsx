@@ -26,7 +26,7 @@ import { NextUIProvider } from "@nextui-org/system";
 import useOnScreen from "@/lib/useOnScreen";
 import { unixToFancyDate } from "@/lib/utils";
 import { getPage, isLoadingFinished } from "./pagination";
-import { UsersContext } from "./DataWrapper";
+import { UsersContext } from "./page";
 import toast from "react-hot-toast";
 import { getUserDataByID } from "../user/[userid]/utils";
 
@@ -35,7 +35,7 @@ function UsersTable() {
   const [sortedItems, SETsortedItems] = useState(items);
   const [autoLoad, SETautoLoad] = useState(false);
 
-  const [isLoading, SETisLoading] = React.useState(true);
+  const [isLoading, SETisLoading] = useState(true);
   const [sortDescriptor, SETsortDescriptor] = useState<SortDescriptor>({});
 
   const loaderRef = useRef<HTMLDivElement>(null);

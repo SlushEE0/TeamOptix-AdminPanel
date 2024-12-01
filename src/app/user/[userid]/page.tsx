@@ -1,8 +1,13 @@
+"use client";
+
 import { Card } from "@/components/ui/card";
 
 import Sidebar from "./Sidebar";
 import { getUserDataByID } from "./utils";
 import { unixToFancyDate } from "@/lib/utils";
+
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 export default async function UserPage({
   params
