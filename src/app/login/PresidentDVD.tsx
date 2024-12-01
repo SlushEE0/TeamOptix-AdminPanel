@@ -6,16 +6,18 @@ import { useState } from "react";
 
 export default function Shennanigans({
   imgPath,
-  active
+  active,
+  startTuple
 }: {
   imgPath: string;
   active: boolean;
+  startTuple: [number, number, number];
 }) {
-  const DVD_SPEED = 4;
+  const DVD_SPEED = 4 * startTuple[2];
 
   const [dvdData, SETdvdData] = useState({
-    x: 0,
-    y: 0,
+    x: startTuple[0],
+    y: startTuple[1],
     invertedX: false,
     invertedY: false
   });

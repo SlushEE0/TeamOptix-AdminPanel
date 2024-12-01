@@ -1,18 +1,18 @@
 "use server";
 
-import { ObjectId } from "mongodb";
+import { ObjectId, WithId } from "mongodb";
 
 import { appendFBdata } from "@/db/firebaseUtils";
 import models from "@/db/mongo";
-import { t_Role } from "@/lib/types";
+import { t_MongoUserData, t_Role } from "@/lib/types";
 import { firebaseAdminApp } from "@/db/firebaseInit";
 
 export async function getUserDataByID(id: string) {
   if (id.length !== 24) return null;
 
-  const doc = await models.User.findOne({ _id: new ObjectId(id) })
+  const doc = (await models.User.findOne({ _id: new ObjectId(id) })
     .lean()
-    .exec();
+    .exec()) as WithId<t_MongoUserData>;
   const stringifiedIdDoc = {
     ...doc,
     _id: doc?._id.toString(),

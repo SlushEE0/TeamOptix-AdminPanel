@@ -1,8 +1,8 @@
 import mongoose, { connect, Schema, model, disconnect, Model } from "mongoose";
 import { MONGO_URL } from "../lib/config";
-import { t_Code, t_MongoUserData } from "../lib/types";
+import { t_AccountCode, t_Code, t_MongoUserData } from "../lib/types";
 
-connect(MONGO_URL || "").catch((err) => {
+connect(MONGO_URL ? `${MONGO_URL}` : "").catch((err) => {
   console.error("Error connecting to MongoDB:");
   console.error(err);
 });
@@ -21,18 +21,26 @@ const schema_Codes = new Schema<t_Code>({
   value: String
 });
 
+const schema_AccountCodes = new Schema<t_AccountCode>({
+  code: String,
+  type: String
+});
+
 const models = {
   User: null as any as Model<t_MongoUserData>,
-  Code: null as any as Model<t_Code>
+  Code: null as any as Model<t_Code>,
+  AccountCode: null as any as Model<t_AccountCode>
 };
 
 // model("MODELNAME") throws error if model does not exist
 try {
   models.User = model<t_MongoUserData>("User");
   models.Code = model<t_Code>("Code");
+  models.AccountCode = model<t_AccountCode>("AccountCode");
 } catch (err) {
   models.User = model("User", schema_Users);
   models.Code = model("Code", schema_Codes);
+  models.AccountCode = model("AccountCode", schema_AccountCodes);
 }
 
 export default models;

@@ -1,5 +1,6 @@
 "use server";
 
+import { getUserDataWithUid } from "@/db/firebaseUtils";
 import models from "@/db/mongo";
 import { t_Code } from "@/lib/types";
 

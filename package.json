@@ -21,6 +21,7 @@
     "@types/react": "18.2.72",
     "@types/react-dom": "18.2.22",
     "autoprefixer": "10.4.19",
+    "caniuse-lite": "^1.0.30001684",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.4",

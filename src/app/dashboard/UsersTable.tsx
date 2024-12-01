@@ -28,6 +28,7 @@ import { unixToFancyDate } from "@/lib/utils";
 import { getPage, isLoadingFinished } from "./pagination";
 import { UsersContext } from "./DataWrapper";
 import toast from "react-hot-toast";
+import { getUserDataByID } from "../user/[userid]/utils";
 
 function UsersTable() {
   const [items, SETitems] = useContext(UsersContext);
@@ -45,12 +46,8 @@ function UsersTable() {
   const load = useCallback(async () => {
     const newItems = await getPage();
 
-    SETitems((currItems) => {
-      return [...currItems, ...newItems];
-    });
-    SETsortedItems((currItems) => {
-      return [...currItems, ...newItems];
-    });
+    SETitems((currItems) => [...currItems, ...newItems]);
+    SETsortedItems((currItems) => [...currItems, ...newItems]);
 
     if (await isLoadingFinished(items.length)) {
       SETisLoading(false);
@@ -63,6 +60,9 @@ function UsersTable() {
 
   useEffect(() => {
     sorter(sortDescriptor);
+    (async () => {
+      if (!(await isLoadingFinished(items.length))) load();
+    })();
   }, [items]);
 
   const sorter = function (descriptor: SortDescriptor) {
@@ -131,10 +131,13 @@ function UsersTable() {
     }
   };
 
-  const onNameClicked = function (e: React.Key) {
-    const loader = toast.loading(`Redirecting`);
+  const onNameClicked = async function (e: React.Key) {
+    const data = await getUserDataByID(e.toString());
+
+    toast.loading(`Going to "${data?.displayName || "<NO NAME>"}"`, {
+      duration: 2000
+    });
     router.push(("/user/" + e) as string);
-    toast.remove(loader);
   };
 
   return (

@@ -129,7 +129,16 @@ export default function LoginForm() {
       {/* {PRESIDENTS.map((pres) => (
         <PresidentDVD imgPath={pres.imgPath} active={yes} key={pres.name} />
       ))} */}
-      <PresidentDVD imgPath={"/presidents/NoahSimon.jpeg"} active={runDVD} />
+      <PresidentDVD
+        imgPath={"/presidents/NoahSimon.jpeg"}
+        active={runDVD}
+        startTuple={[2, 2, 1.4]}
+      />
+      <PresidentDVD
+        imgPath={"/presidents/NoahSimon.jpeg"}
+        active={runDVD}
+        startTuple={[100, 500, 1]}
+      />
       <Button
         className={"absolute bottom-4 right-4 text-gray-900"}
         variant={"ghost"}

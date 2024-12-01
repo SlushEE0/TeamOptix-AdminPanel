@@ -2,17 +2,13 @@
 
 import { Dispatch, SetStateAction, createContext, useState } from "react";
 
-import { t_UserData, t_Code, With_id } from "@/lib/types";
+import { t_UserData, t_Code, With_id, t_Role } from "@/lib/types";
 import { deleteCode } from "@/app/dashboard/utils";
 
 import UsersTable from "./UsersTable";
 import CodesTable from "./CodesTable";
 import DeleteCode from "./DeleteCode";
 import CreateCode from "./CreateCode";
-import CreateUser from "./CreateUser";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@nextui-org/react";
 
 type CodesTableData = With_id<t_Code>[];
 type UsersTableData = With_id<t_UserData>[];
@@ -32,15 +28,6 @@ export default function DataWrapper({ initalCodesData }: props) {
   const [usersTableData, SETusersTableData] = useState<UsersTableData>([]);
   const [codesTableData, SETcodesTableData] =
     useState<CodesTableData>(initalCodesData);
-
-  const deleteCodeAndRefetch = async function (value: string) {
-    const deletedCode = await deleteCode(value);
-    const deletedCodeIndex = codesTableData.findIndex((item) => {
-      return item.value == deletedCode?.value;
-    });
-
-    SETcodesTableData((data) => data.toSpliced(deletedCodeIndex, 1));
-  };
 
   return (
     <section className="w-screen h-screen">
