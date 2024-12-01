@@ -26,7 +26,7 @@ import { NextUIProvider } from "@nextui-org/system";
 import useOnScreen from "@/lib/useOnScreen";
 import { unixToFancyDate } from "@/lib/utils";
 import { getPage, isLoadingFinished } from "./pagination";
-import { UsersContext } from "./page";
+import { UsersContext } from "./DataWrapper";
 import toast from "react-hot-toast";
 import { getUserDataByID } from "../user/[userid]/utils";
 

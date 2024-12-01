@@ -20,7 +20,7 @@ import {
   PopoverTrigger
 } from "@/components/ui/popover";
 
-import { CodesContext } from "./page";
+import { CodesContext } from "./DataWrapper";
 import { deleteCode } from "./utils";
 
 const lexend = Lexend({

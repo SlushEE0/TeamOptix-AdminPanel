@@ -24,7 +24,7 @@ import {
 import { t_CodeType } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { createCode } from "./utils";
-import { CodesContext } from "./page";
+import { CodesContext } from "./DataWrapper";
 import { getRandomTeam } from "@/lib/teamsLib";
 
 const lexend = Lexend({

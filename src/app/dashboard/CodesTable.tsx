@@ -13,7 +13,7 @@ import {
   SortDescriptor
 } from "@nextui-org/table";
 
-import { CodesContext } from "./page";
+import { CodesContext } from "./DataWrapper";
 
 const lexend = Lexend({
   weight: "300",
