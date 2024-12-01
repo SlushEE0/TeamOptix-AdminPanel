@@ -2,7 +2,6 @@
 
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
-import { firebaseAuth } from "@/db/firebaseApp";
 import { signOut } from "firebase/auth";
 
 const jwtSecret = new TextEncoder().encode("Toolkit-AdminPanel");
@@ -47,7 +46,6 @@ export async function createSession(email: string) {
 }
 
 export async function deleteSession() {
-  signOut(firebaseAuth);
   return cookies().delete("session");
 }
 

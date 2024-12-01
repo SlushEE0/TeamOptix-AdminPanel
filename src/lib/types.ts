@@ -1,3 +1,5 @@
+import { UserRecord } from "firebase-admin/lib/auth/user-record";
+
 export type With_id<t> = t & {
   _id: string;
 };
@@ -14,22 +16,14 @@ export type t_MongoUserData = {
   meetingCount: number;
 };
 
-export type t_UserRecord = {
-  uid: string;
-  email: string;
-  emailVerified: boolean;
-  phoneNumber?: string;
-  photoURL?: string;
-  customClaims?: {
-    [key: string]: any;
-  };
-  displayName: string;
-  role?: t_Role;
-};
-
 export type t_Code = {
   value: string;
   key: t_CodeType;
+};
+
+export type t_AccountCode = {
+  code: string;
+  type: "create";
 };
 
 export type t_CodeType =
@@ -37,14 +31,29 @@ export type t_CodeType =
   | "checkOutPassword"
   | "attendanceOverride";
 
-export type t_Role = "certified" | "member" | "admin";
+export type t_Role = "certified" | "member" | "admin" | "unknown";
 
-export interface t_UserData extends t_MongoUserData, t_UserRecord {}
+export interface t_UserData
+  extends t_MongoUserData,
+    Omit<UserRecord, "toJSON"> {
+  uid: string;
+  role: t_Role;
+  _id: string;
+}
 
 export enum AuthStates {
   AUTHORIZED,
   UNAUTHORIZED,
   UNKNOWN,
+  ERROR,
+  ECONNREFUSED
+}
+
+export enum AccountCreationStates {
+  SUCCESS,
+  IN_USE,
+  INVALID_CODE,
+  PASSWORD_MISMATCH,
   ERROR
 }
 

@@ -1,6 +1,6 @@
-'use server'
+"use server";
 
-import { firebaseAdminApp } from "@/db/firebaseAdmin";
+import { firebaseAdminApp } from "@/db/firebaseInit";
 
 export async function getPassResetLink(email: string) {
   const user = await firebaseAdminApp.auth().getUserByEmail(email);

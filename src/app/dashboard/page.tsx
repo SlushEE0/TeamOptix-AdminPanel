@@ -1,4 +1,4 @@
-import { getAllCodes, getAllUserData } from "@/app/dashboard/utils";
+import { getAllCodes } from "@/app/dashboard/utils";
 
 import DataWrapper from "@/app/dashboard/DataWrapper";
 

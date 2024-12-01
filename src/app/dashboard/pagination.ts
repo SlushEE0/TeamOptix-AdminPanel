@@ -1,59 +1,56 @@
 "use server";
 
-import { mongoDisconnect, mongoReq, mongo_parseFindCursor } from "@/db/mongo";
-import { t_MongoUserData } from "@/lib/types";
+import models from "@/db/mongo";
 import { appendFBdataArr } from "@/db/firebaseUtils";
-import { WithId } from "mongodb";
 
 let pageSize = 20;
 let docsRead = 0;
+
+let nonames = 0;
 
 export async function setPageSize(newSize: number) {
   pageSize = newSize;
 }
 
 export async function getPage() {
-  const doc = await mongoReq(async (db) => {
-    const data = await mongo_parseFindCursor(
-      db
-        .collection("users")
-        .find<WithId<t_MongoUserData>>({})
-        .skip(docsRead)
-        .limit(pageSize)
-    );
+  const docs = await models.User.find({})
+    .limit(pageSize)
+    .skip(docsRead)
+    .lean()
+    .exec();
 
-    const count = await db.collection("users").countDocuments(
-      {},
-      {
-        skip: docsRead,
-        limit: pageSize
-      }
-    );
-
-    return [data, count] as const;
+  const stringifiedIdDocs = docs.map((doc) => {
+    return {
+      ...doc,
+      _id: doc._id.toString()
+    };
   });
 
-  docsRead += doc[1];
+  if (!docs) return [];
+  else docsRead += docs?.length;
 
-  return appendFBdataArr(doc[0]);
+  const fbData = await appendFBdataArr(stringifiedIdDocs);
+
+  fbData.map((doc) => {
+    if (doc.email === "" && doc.displayName === "") {
+      console.warn(
+        `No Name/Email Found for user ${doc.uid}. Removing from list...`
+      );
+      console.warn(doc);
+      return;
+    }
+  });
+
+  return fbData;
 }
 
 export async function getDocumentCount() {
-  const doc = await mongoReq((db) => {
-    return db.collection("users").estimatedDocumentCount();
-  });
-
-  return doc;
+  const docs = await models.User.estimatedDocumentCount().exec();
+  return docs - nonames;
 }
 
 export async function isLoadingFinished(itemsLen?: number) {
-  // if (docsRead !== itemsLen)
-  //   throw Error(
-  //     `Items length does not equal docsRead. ${itemsLen}, ${docsRead}`
-  //   );
-
   if ((await getDocumentCount()) !== docsRead) return false;
 
-  mongoDisconnect();
   return true;
 }

@@ -8,49 +8,15 @@ import {
 
 import { BASE_FETCH_URL } from "../lib/config";
 import { createSession, deleteSession, getSession } from "@/lib/session";
-import { t_MongoUserData, t_Role, t_UserRecord, With_id } from "../lib/types";
+import { t_MongoUserData, t_Role, t_UserData, With_id } from "../lib/types";
 import { AuthStates } from "@/lib/types";
 
-import { firebaseAuth, provider_google } from "./firebaseApp";
-
-type userOptions = "user" | "admin" | "certified";
-async function authorizeUser(
-  userToken: string,
-  type: userOptions,
-  email = "",
-  persist = true
-): Promise<AuthStates> {
-  let res: any = false;
-
-  try {
-    res = await fetch(BASE_FETCH_URL + "/api/auth", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        endpoint: "authorize",
-        payload: {
-          token: userToken,
-          type
-        }
-      })
-    }).then((res) => res.json());
-  } catch (err) {
-    console.warn(err);
-  }
-
-  console.log(`${email}-Authorize`, res);
-  switch (true) {
-    case res === true:
-      persist ? createSession(email) : null;
-      return AuthStates.AUTHORIZED;
-    case res === false:
-      return AuthStates.UNAUTHORIZED;
-    default:
-      return AuthStates.ERROR;
-  }
-}
+import {
+  firebaseAdminApp,
+  firebaseAuth,
+  provider_google
+} from "./firebaseInit";
+import { UserRecord } from "firebase-admin/lib/auth/user-record";
 
 export async function signIn_emailPass(
   email: string,
@@ -72,26 +38,33 @@ export async function signIn_emailPass(
     return AuthStates.ERROR;
   }
 
-  const userIdToken = (await user?.getIdToken()) || "";
+  const userAdminified = await firebaseAdminApp.auth().getUser(user.uid);
+  const isAdmin = userAdminified.customClaims?.admin;
 
-  console.log(`${email}-SignIn`, userIdToken.length);
-  return authorizeUser(userIdToken, "admin", email, persist);
-}
+  if (isAdmin) {
+    createSession(email);
+    console.log(`UserAuthorized: ${email}`);
 
-export async function signIn_google() {
-  setPersistence(firebaseAuth, browserLocalPersistence);
-
-  let user;
-  try {
-    user = (await signInWithPopup(firebaseAuth, provider_google)).user;
-  } catch (e) {
-    return console.log("User not Found");
+    return AuthStates.AUTHORIZED;
   }
 
-  const userIdToken = (await user?.getIdToken()) || "";
-
-  return authorizeUser(userIdToken, "admin");
+  return AuthStates.UNAUTHORIZED;
 }
+
+// export async function signIn_google() {
+//   setPersistence(firebaseAuth, browserLocalPersistence);
+
+//   let user;
+//   try {
+//     user = (await signInWithPopup(firebaseAuth, provider_google)).user;
+//   } catch (e) {
+//     return console.log("User not Found");
+//   }
+
+//   const userIdToken = (await user?.getIdToken()) || "";
+
+//   return authorizeUser(userIdToken, "admin");
+// }
 
 export async function getCurrentUser() {
   return firebaseAuth.currentUser;
@@ -112,25 +85,16 @@ export async function loginWithPersistedData() {
   }
 }
 
-export async function getUserDataWithUid(uid: string): Promise<t_UserRecord> {
-  let res: any = false;
+export async function getUserDataWithUid(
+  uid: string
+): Promise<UserRecord | null> {
+  let res: UserRecord | null = null;
 
   try {
-    res = await fetch(BASE_FETCH_URL + "/api/auth", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        endpoint: "get-user",
-        payload: {
-          uid
-          // auth: //insert token
-        }
-      })
-    }).then((res) => res.json());
+    res = await firebaseAdminApp.auth().getUser(uid);
   } catch (err) {
-    console.warn(err);
+    console.error(`FB User Data Error (id: ${uid})`);
+    console.error(err);
   }
 
   return res;
@@ -139,11 +103,13 @@ export async function appendFBdataArr(
   mongoUserData: With_id<t_MongoUserData>[]
 ) {
   const promiseArr = await mongoUserData.map(async (item) => {
-    const userData = (await getUserDataWithUid(item.uid)) || {};
+    const userData = (
+      await getUserDataWithUid(item.uid)
+    )?.toJSON() as UserRecord;
 
     const role: t_Role = (() => {
-      if (userData.customClaims?.admin) return "admin";
-      if (userData.customClaims?.certified) return "certified";
+      if (userData?.customClaims?.admin) return "admin";
+      if (userData?.customClaims?.certified) return "certified";
       return "member";
     })();
 
@@ -153,13 +119,17 @@ export async function appendFBdataArr(
   return Promise.all(promiseArr);
 }
 
-export async function appendFBdata<T>(mongoUserData: { uid: string } & T) {
-  const userData = (await getUserDataWithUid(mongoUserData.uid)) || {};
+export async function appendFBdata(
+  mongoUserData: With_id<t_MongoUserData>
+): Promise<t_UserData> {
+  const userData = (
+    await getUserDataWithUid(mongoUserData.uid)
+  )?.toJSON() as UserRecord;
 
   const role = (() => {
-    if (userData.customClaims?.member) return "member";
-    if (userData.customClaims?.admin) return "admin";
-    if (userData.customClaims?.certified) return "member";
+    if (userData?.customClaims?.admin) return "admin";
+    if (userData?.customClaims?.certified) return "certified";
+    return "member";
   })();
 
   return { ...userData, ...mongoUserData, role };
