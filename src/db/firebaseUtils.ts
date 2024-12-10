@@ -8,7 +8,13 @@ import {
 
 import { BASE_FETCH_URL } from "../lib/config";
 import { createSession, deleteSession, getSession } from "@/lib/session";
-import { t_MongoUserData, t_Role, t_UserData, With_id } from "../lib/types";
+import {
+  AccountCreationStates,
+  t_MongoUserData,
+  t_Role,
+  t_UserData,
+  With_id
+} from "../lib/types";
 import { AuthStates } from "@/lib/types";
 
 import {
@@ -42,10 +48,13 @@ export async function signIn_emailPass(
   const isAdmin = userAdminified.customClaims?.admin;
 
   if (isAdmin) {
-    createSession(email);
+    createSession(email, isAdmin);
     console.log(`UserAuthorized: ${email}`);
 
-    return AuthStates.AUTHORIZED;
+    return AuthStates.ADMIN_AUTHORIZED;
+  } else if (userAdminified.customClaims?.member) {
+    console.log(`UserAuthorized: ${email}`);
+    return AuthStates.USER_AUTHORIZED;
   }
 
   return AuthStates.UNAUTHORIZED;
@@ -70,6 +79,33 @@ export async function getCurrentUser() {
   return firebaseAuth.currentUser;
 }
 
+export async function createUser(
+  email: string,
+  password: string,
+  displayName: string
+) {
+  let userRecord: UserRecord;
+  try {
+    userRecord = await firebaseAdminApp.auth().getUserByEmail(email);
+
+    if (userRecord.email === email) return AccountCreationStates.IN_USE;
+  } catch {
+    userRecord = await firebaseAdminApp.auth().createUser({
+      email,
+      displayName,
+      password
+    });
+
+    firebaseAdminApp
+      .auth()
+      .setCustomUserClaims(userRecord.uid, { member: true });
+
+    if (!userRecord) return AccountCreationStates.ERROR;
+  }
+
+  return AccountCreationStates.SUCCESS;
+}
+
 export async function loginWithPersistedData() {
   const { email, pass } = (await getSession()) as any;
 
@@ -78,7 +114,7 @@ export async function loginWithPersistedData() {
   const loginState = await signIn_emailPass(email, pass, false);
 
   switch (loginState) {
-    case AuthStates.AUTHORIZED:
+    case AuthStates.ADMIN_AUTHORIZED:
       break;
     default:
       deleteSession();
