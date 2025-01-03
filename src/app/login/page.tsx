@@ -43,7 +43,7 @@ export default function LoginForm() {
       case AuthStates.USER_AUTHORIZED:
         toast.success("USER! Authorized 🙂");
         const loader1 = toast.loading("Redirecting ...");
-        router.push(`/toolkit/${email}`);
+        router.push(`/toolkit`);
         toast.dismiss(loader1);
         break;
       case AuthStates.UNAUTHORIZED:

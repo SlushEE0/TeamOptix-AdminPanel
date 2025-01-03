@@ -2,7 +2,6 @@
 
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
-import { signOut } from "firebase/auth";
 import { SessionStates } from "./types";
 
 const jwtSecret = new TextEncoder().encode("Toolkit-AdminPanel");

@@ -64,6 +64,14 @@ export enum SessionStates {
   EXPIRED
 }
 
+export enum CodeValidationStates {
+  STARTED,
+  INVALID,
+  ENDED,
+  NO_SESSION,
+  ERROR
+}
+
 // Make tables modular
 
 // export type t_DataTableColumn = {

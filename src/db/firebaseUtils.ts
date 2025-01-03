@@ -47,10 +47,9 @@ export async function signIn_emailPass(
   const userAdminified = await firebaseAdminApp.auth().getUser(user.uid);
   const isAdmin = userAdminified.customClaims?.admin;
 
+  createSession(email, isAdmin);
   if (isAdmin) {
-    createSession(email, isAdmin);
     console.log(`UserAuthorized: ${email}`);
-
     return AuthStates.ADMIN_AUTHORIZED;
   } else if (userAdminified.customClaims?.member) {
     console.log(`UserAuthorized: ${email}`);

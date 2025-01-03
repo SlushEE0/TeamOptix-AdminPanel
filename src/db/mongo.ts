@@ -2,10 +2,25 @@ import mongoose, { connect, Schema, model, disconnect, Model } from "mongoose";
 import { MONGO_URL } from "../lib/config";
 import { t_AccountCode, t_Code, t_MongoUserData } from "../lib/types";
 
-connect(MONGO_URL ? `${MONGO_URL}` : "").catch((err) => {
-  console.error("Error connecting to MongoDB:");
-  console.error(err);
-});
+connect(MONGO_URL ? `${MONGO_URL}` : "")
+  .then(() => {
+    console.log("Connected to MongoDB");
+  })
+  .catch((err) => {
+    console.error("Error connecting to MongoDB:");
+    console.error(err);
+  });
+
+export const reconnect = async function () {
+  await connect(MONGO_URL ? `${MONGO_URL}` : "")
+    .then(() => {
+      console.log("Connected to MongoDB");
+    })
+    .catch((err) => {
+      console.error("Error connecting to MongoDB:");
+      console.error(err);
+    });
+};
 
 // Schema.ObjectId.get((id) => (!id ? id : id.toString()));
 
@@ -49,6 +64,18 @@ export async function mongoDisconnect() {
   disconnect();
 }
 
+export async function createUser(uid: string) {
+  const newUser = new models.User({
+    uid,
+    lastCheckIn: 0,
+    seconds: 0,
+    meetingCount: 0
+  });
+
+  const doc = await newUser.save();
+
+  return { ...doc.toObject(), __v: doc.__v };
+}
 // async function updateMongoUrl(userToken?: string) {
 //   let cpy_userToken = userToken || "";
 
