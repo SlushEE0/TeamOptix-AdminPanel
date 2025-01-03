@@ -50,7 +50,7 @@ export default function Toolkit() {
   }, []);
 
   return userData ? (
-    <LoadedContent {...{ userData }} />
+    <LoadedContent {...{ initalData: userData }} />
   ) : (
     <div className="size-full flex items-center justify-center gap-5">
       <Spinner size="lg" />
@@ -59,19 +59,33 @@ export default function Toolkit() {
   );
 }
 
-function LoadedContent({ userData }: { userData: t_UserData }) {
+function LoadedContent({ initalData }: { initalData: t_UserData }) {
+  const [userData, SETuserData] = useState(initalData);
   const [code, SETcode] = useState("");
   const [isLogging, SETisLogging] = useState(false);
 
+  const updateIsLogging = async function () {
+    const session = await getLoggingSession();
+
+    if (session === -2) return SETisLogging(false);
+
+    if ((session.payload.timeMS as number) < Date.now())
+      return SETisLogging(true);
+  };
+
+  const updateData = async function () {
+    const data = await getUserData();
+
+    if (data === "ERROR") {
+      toast.error("Error fetching user data", { duration: 999999 });
+      return;
+    }
+
+    SETuserData(data);
+  };
+
   useEffect(() => {
-    (async () => {
-      const session = await getLoggingSession();
-
-      if (session === -2) return SETisLogging(false);
-
-      if ((session.payload.timeMS as number) < Date.now())
-        return SETisLogging(true);
-    })();
+    updateIsLogging();
   }, []);
 
   const handleCodeSubmit = async () => {
@@ -85,14 +99,15 @@ function LoadedContent({ userData }: { userData: t_UserData }) {
     switch (state) {
       case CodeValidationStates.STARTED:
         toast.success("Session started");
-        window.location.reload();
+        updateIsLogging();
         break;
       case CodeValidationStates.INVALID:
         toast.error("Invalid code");
         break;
       case CodeValidationStates.ENDED:
         toast.success(`Session ended. Logged ${minutesLogged} hours`);
-        window.location.reload();
+        updateIsLogging();
+        updateData();
         break;
       case CodeValidationStates.NO_SESSION:
         toast.error("No active session");
