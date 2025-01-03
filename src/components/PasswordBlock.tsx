@@ -21,8 +21,6 @@ export default function PasswordBlock({
 }: props) {
   const [passwordVisible, SETpasswordVisible] = useState(defaultValue);
 
-  is_passwordVisible = passwordVisible;
-
   return (
     <section className="flex gap-2">
       <Input

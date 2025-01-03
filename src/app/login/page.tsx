@@ -33,11 +33,18 @@ export default function LoginForm() {
 
     console.log(AuthStates.UNAUTHORIZED);
     switch (res) {
-      case AuthStates.AUTHORIZED:
+      case AuthStates.ADMIN_AUTHORIZED:
         // console.log("AUTHORIZED");
-        toast.success("Authorized 🙂");
-        toast.loading("Redirecting ...");
+        toast.success("ADMIN! Authorized 🙂");
+        const loader = toast.loading("Redirecting ...");
         router.push("/dashboard");
+        toast.dismiss(loader);
+        break;
+      case AuthStates.USER_AUTHORIZED:
+        toast.success("USER! Authorized 🙂");
+        const loader1 = toast.loading("Redirecting ...");
+        router.push(`/toolkit`);
+        toast.dismiss(loader1);
         break;
       case AuthStates.UNAUTHORIZED:
         // console.log("UNAUTHORIZED");

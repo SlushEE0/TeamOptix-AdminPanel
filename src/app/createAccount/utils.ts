@@ -5,6 +5,8 @@ import { UserRecord } from "firebase-admin/lib/auth/user-record";
 import { AccountCreationStates } from "@/lib/types";
 import { firebaseAdminApp } from "@/db/firebaseInit";
 import models from "@/db/mongo";
+import { NextRequest } from "next/server";
+import { createUser } from "@/db/firebaseUtils";
 
 type t_AccountCreationParams = {
   email: string;
@@ -30,27 +32,5 @@ export async function createAccount(loginParams: t_AccountCreationParams) {
 
   if (!codeExists?._id) return AccountCreationStates.INVALID_CODE;
 
-  let userRecord: UserRecord;
-  try {
-    userRecord = await firebaseAdminApp
-      .auth()
-      .getUserByEmail(loginParams.email);
-
-    if (userRecord.email === loginParams.email)
-      return AccountCreationStates.IN_USE;
-  } catch {
-    userRecord = await firebaseAdminApp.auth().createUser({
-      email: loginParams.email,
-      displayName: loginParams.name,
-      password: loginParams.password
-    });
-
-    firebaseAdminApp
-      .auth()
-      .setCustomUserClaims(userRecord.uid, { member: true });
-
-    if (!userRecord) return AccountCreationStates.ERROR;
-  }
-
-  return AccountCreationStates.SUCCESS;
+  return createUser(loginParams.email, loginParams.password, loginParams.name);
 }

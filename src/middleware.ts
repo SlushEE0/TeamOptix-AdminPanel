@@ -1,16 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { validateSession } from "./lib/session";
+import { SessionStates } from "./lib/types";
 
 export async function middleware(req: NextRequest) {
-  if (await validateSession()) return;
+  const sessionData = await validateSession();
+  const reqUrl = new URL(req.url);
 
-  console.log(`Redirecting to ${new URL(req.url).origin}/login`);
+  if (!sessionData) {
+    return NextResponse.redirect(`${new URL(req.url).origin}/login`);
+  }
+
+  const [level, payload] = sessionData;
+
+  if (level === SessionStates.ADMIN) return;
+  if (level === SessionStates.USER) {
+    if (reqUrl.pathname == `/toolkit`) return;
+  }
 
   return NextResponse.redirect(`${new URL(req.url).origin}/login`);
 }
 
 export const config = {
   //ALL PROTECTED ROUTES
-  matcher: ["/", "/dashboard", "/admin", "/user/:path"]
+  // was going to spread the top two arrays but apparently thats not allowed
+  matcher: ["/", "/toolkit", "/dashboard", "/admin", "/user/:path"]
 };

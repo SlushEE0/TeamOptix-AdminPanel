@@ -42,7 +42,8 @@ export interface t_UserData
 }
 
 export enum AuthStates {
-  AUTHORIZED,
+  ADMIN_AUTHORIZED,
+  USER_AUTHORIZED,
   UNAUTHORIZED,
   UNKNOWN,
   ERROR,
@@ -54,6 +55,20 @@ export enum AccountCreationStates {
   IN_USE,
   INVALID_CODE,
   PASSWORD_MISMATCH,
+  ERROR
+}
+
+export enum SessionStates {
+  ADMIN,
+  USER,
+  EXPIRED
+}
+
+export enum CodeValidationStates {
+  STARTED,
+  INVALID,
+  ENDED,
+  NO_SESSION,
   ERROR
 }
 

@@ -2,12 +2,13 @@
 
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
-import { signOut } from "firebase/auth";
+import { SessionStates } from "./types";
 
 const jwtSecret = new TextEncoder().encode("Toolkit-AdminPanel");
 
 type JWTPayload = {
   email: string;
+  isAdmin: boolean;
 };
 
 async function encrypt(payload: JWTPayload) {
@@ -35,12 +36,11 @@ export async function getSession() {
   return await decrypt(cookies().get("session")?.value || "");
 }
 
-export async function createSession(email: string) {
+export async function createSession(email: string, isAdmin = false) {
   encrypt({
-    email
+    email,
+    isAdmin
   }).then((jwt) => {
-    console.log(jwt);
-
     cookies().set("session", jwt);
   });
 }
@@ -51,10 +51,16 @@ export async function deleteSession() {
 
 export async function validateSession() {
   const session = await getSession();
+
   if (!session) return false;
 
-  const jwtExp: any = session.payload.exp || 0;
-  if (!jwtExp) return false;
+  let level = SessionStates.USER;
 
-  if (Date.now() / 1000 < jwtExp) return true;
+  const jwtExp: any = session.payload.exp || 0;
+  if (!jwtExp) SessionStates.EXPIRED;
+
+  if (Date.now() / 1000 > jwtExp) level = SessionStates.EXPIRED;
+  if (session.payload.isAdmin) level = SessionStates.ADMIN;
+
+  return [level, session.payload] as const;
 }
