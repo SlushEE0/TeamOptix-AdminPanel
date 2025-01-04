@@ -98,7 +98,7 @@ export async function fb_createUser(
 
     firebaseAdminApp
       .auth()
-      .setCustomUserClaims(userRecord.uid, { member: true, admin: true });
+      .setCustomUserClaims(userRecord.uid, { member: true });
 
     if (!userRecord) return [AccountCreationStates.ERROR, ""];
   }

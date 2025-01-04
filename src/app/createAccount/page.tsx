@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 import toast from "react-hot-toast";
 
@@ -13,8 +14,11 @@ import { Label } from "@/components/ui/label";
 import { AccountCreationStates } from "@/lib/types";
 import { createAccount, mongoCreateAccount } from "./utils";
 import PasswordBlock from "@/components/PasswordBlock";
+import { validateAuth } from "../login/utils";
 
 export default function CreateAccount() {
+  const router = useRouter()
+
   const onFormSubmit = async function (formData: FormData) {
     const loader = toast.loading("Creating Account ...");
 
@@ -45,6 +49,8 @@ export default function CreateAccount() {
       case AccountCreationStates.SUCCESS:
         toast.success("Account Created Successfully");
         mongoCreateAccount(uid);
+        validateAuth(params.email, params.password);
+        router.push('/toolkit');
         break;
       case AccountCreationStates.INVALID_CODE:
         toast.error("Invalid Creation Code");
