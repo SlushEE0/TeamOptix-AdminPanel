@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:4000';
+const BASE_URL = 'https://optixtoolkit-backend-production-abcd.up.railway.app';
 
 export const getInventoryByBarcodeID = async (barcodeId: string) => {
   const response = await fetch(`${BASE_URL}/inventory/${barcodeId}`);
