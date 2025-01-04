@@ -115,6 +115,9 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
       case CodeValidationStates.NO_SESSION:
         toast.error("No active session");
         break;
+      case CodeValidationStates.WRONG_TIME:
+        toast.error("You can't check in/out at this time");
+        break;
       default:
         toast.error("An error occurred... please refresh page");
         toast.loading("Refreshing page in 5 seconds", { duration: 4800 });

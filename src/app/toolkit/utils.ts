@@ -124,9 +124,62 @@ async function endLoggingSession() {
 }
 
 export async function validateCode(code: string, userId: string) {
-  const codeDoc = await models.Code.findOne({ value: code }).lean().exec();
+  //! TODO: Database Valid dates. Currently hardcoded
 
-  console.log(userId);
+  console.warn("TIMECHECKING IS CURRENTTLY HARDCODED");
+  console.warn("DB BASED DATES ASAP");
+
+  const DAYS = [
+    "sunday",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday"
+  ] as const;
+
+  //! TODO: REMOVE ANY
+  const valid: any = {
+    saturday: {
+      start: {
+        hour: 9,
+        minute: 0
+      },
+      end: {
+        hour: 17,
+        minute: 30
+      }
+    }
+    // friday: {
+    //   start: {
+    //     hour: 21,
+    //     minute: 45
+    //   },
+    //   end: {
+    //     hour: 21,
+    //     minute: 50
+    //   }
+    // }
+  } as const;
+
+  const date = new Date();
+
+  const day = DAYS[date.getDay()];
+  const hour = date.getHours();
+  const minute = date.getMinutes();
+
+  if (hour < valid[day].start.hour) {
+    return [CodeValidationStates.WRONG_TIME, 0];
+  }
+  if (hour > valid[day].end.hour) {
+    return [CodeValidationStates.WRONG_TIME, 0];
+  }
+  if (hour === valid[day].end.hour && minute > valid[day].start.minute) {
+    return [CodeValidationStates.WRONG_TIME, 0];
+  }
+
+  const codeDoc = await models.Code.findOne({ value: code }).lean().exec();
 
   if (!codeDoc) {
     return [CodeValidationStates.INVALID, 0];
