@@ -169,15 +169,15 @@ export async function validateCode(code: string, userId: string) {
   const hour = date.getHours();
   const minute = date.getMinutes();
 
-  if (hour < valid[day].start.hour) {
-    return [CodeValidationStates.WRONG_TIME, 0];
-  }
-  if (hour > valid[day].end.hour) {
-    return [CodeValidationStates.WRONG_TIME, 0];
-  }
-  if (hour === valid[day].end.hour && minute > valid[day].start.minute) {
-    return [CodeValidationStates.WRONG_TIME, 0];
-  }
+  // if (hour < valid[day].start.hour) {
+  //   return [CodeValidationStates.WRONG_TIME, 0];
+  // }
+  // if (hour > valid[day].end.hour) {
+  //   return [CodeValidationStates.WRONG_TIME, 0];
+  // }
+  // if (hour === valid[day].end.hour && minute > valid[day].start.minute) {
+  //   return [CodeValidationStates.WRONG_TIME, 0];
+  // }
 
   const codeDoc = await models.Code.findOne({ value: code }).lean().exec();
 
