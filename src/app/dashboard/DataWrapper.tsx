@@ -7,6 +7,7 @@ import {
   useEffect,
   useState
 } from "react";
+import toast from "react-hot-toast";
 
 import { t_UserData, t_Code, With_id, t_Role } from "@/lib/types";
 import { getAllCodes } from "@/app/dashboard/utils";
@@ -31,6 +32,8 @@ export default function DataWrapper() {
   const [codesTableData, SETcodesTableData] = useState<CodesTableData>([]);
 
   useEffect(() => {
+    toast.dismiss();
+
     (async () => {
       SETcodesTableData(await getAllCodes());
     })();

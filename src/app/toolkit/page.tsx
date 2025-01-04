@@ -37,6 +37,7 @@ export default function Toolkit() {
 
   // Fetch user data on component load
   useEffect(() => {
+    toast.dismiss();
     (async () => {
       const data = await getUserData();
 
@@ -105,7 +106,9 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
         toast.error("Invalid code");
         break;
       case CodeValidationStates.ENDED:
-        toast.success(`Session ended. Logged ${minutesLogged} hours`);
+        toast.success(
+          `Session ended. Logged ${minutesLogged.toFixed(2)} minutes`
+        );
         updateIsLogging();
         updateData();
         break;
@@ -113,65 +116,97 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
         toast.error("No active session");
         break;
       default:
-        toast.error("An error occurred");
+        toast.error("An error occurred... please refresh page");
+        toast.loading("Refreshing page in 5 seconds", { duration: 4800 });
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 5000);
         break;
     }
   };
 
+  const getTimeStr = function () {
+    if (userData.seconds === 0) return "No Hours Logged";
+
+    const hours = userData.seconds / 1000 / 60 / 60;
+    const minutes = (hours % 1) * 60;
+
+    return `${Math.round(hours)} Hours and ${Math.round(minutes)} Minutes`;
+  };
+
+  const getLoggingTextColor = function () {
+    if (isLogging) return "text-green-500";
+    return "text-red-500";
+  };
+
   return (
-    <div className="container mx-auto p-4 w-[30rem]">
-      <Card className="mb-4">
-        <CardHeader>
-          <CardTitle className={lexendThick.className}>
-            User Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>
-            <strong>Name:</strong> {userData.displayName}
-          </p>
-          <p>
-            <strong>Email:</strong> {userData.email}
-          </p>
-          <br />
-          <p>
-            <strong>Build Season Hours:</strong>{" "}
-            {(userData.seconds / 1000 / 60 / 60).toFixed(1)}
-          </p>
-          <p>
-            <strong>Meeting Count:</strong> {userData.meetingCount}
-          </p>
-          <p>
-            <strong>Last Check In:</strong>{" "}
-            {userData.lastCheckIn
-              ? unixToFancyDate(userData.lastCheckIn)
-              : "Unknown"}
-          </p>
-          <br />
-          <p>
-            <strong>Logging:</strong> {isLogging ? "Yes" : "No"}
-          </p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle className={lexendThick.className}>Enter Code</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Input
-            type="text"
-            placeholder="Enter your code"
-            value={code}
-            onChange={(e) => SETcode(e.target.value)}
-            className="mb-4"
-          />
-        </CardContent>
-        <CardFooter>
-          <Button onClick={handleCodeSubmit} className="w-full">
-            Submit
-          </Button>
-        </CardFooter>
-      </Card>
-    </div>
+    <>
+      <div className="container size-full p-4 mx-auto flex items-center justify-center gap-4 flex-col">
+        <div className="h-12"></div>
+        <h1 className="text-4xl text-center mb-4 absolute top-3">
+          Hello <u>{userData.displayName}</u>!
+        </h1>
+        <div
+          className={
+            "bg-card text-card-foreground shadow-sm rounded-lg border text-center p-4 text-2xl max-w-96 w-full " +
+            getLoggingTextColor()
+          }>
+          <strong>{getTimeStr()}</strong>
+        </div>
+        <Card className="max-w-96 w-full max-h-52 grow">
+          <CardHeader>
+            <CardTitle className={lexendThick.className}>Enter Code</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Input
+              type="text"
+              placeholder="x93hsd"
+              value={code}
+              onChange={(e) => SETcode(e.target.value)}
+              className="mb-4"
+            />
+          </CardContent>
+          <CardFooter>
+            <Button onClick={handleCodeSubmit} className="w-full">
+              {isLogging ? "Check Out" : "Check In"}
+            </Button>
+          </CardFooter>
+        </Card>
+        <Card className="mb-4 absolute left-3 top-3 hidden xl:block">
+          <CardHeader>
+            <CardTitle className={lexendThick.className}>
+              User Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>
+              <strong>Name:</strong> {userData.displayName}
+            </p>
+            <p>
+              <strong>Email:</strong> {userData.email}
+            </p>
+            <br />
+            <p>
+              <strong>Build Season Hours:</strong>{" "}
+              {(userData.seconds / 1000 / 60 / 60).toFixed(1)}
+            </p>
+            <p>
+              <strong>Meeting Count:</strong> {userData.meetingCount}
+            </p>
+            <p>
+              <strong>Last Check In:</strong>{" "}
+              {userData.lastCheckIn
+                ? unixToFancyDate(userData.lastCheckIn)
+                : "Unknown"}
+            </p>
+            <br />
+            <p>
+              <strong>Logging:</strong> {isLogging ? "Yes" : "No"}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </>
   );
 }
