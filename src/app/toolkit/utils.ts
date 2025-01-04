@@ -6,7 +6,7 @@ import { SignJWT, jwtVerify } from "jose";
 
 import { firebaseAdminApp } from "@/db/firebaseInit";
 import { getSession } from "@/lib/session";
-import models, { createUser, reconnect } from "@/db/mongo";
+import models, { mongo_createUser, reconnect } from "@/db/mongo";
 import { CodeValidationStates, t_UserData } from "@/lib/types";
 
 const jwtSecret = new TextEncoder().encode("Toolkit-AdminPanel");
@@ -28,7 +28,7 @@ export async function getUserData() {
   let mongoData = await models.User.findOne({ uid: fbData.uid }).lean().exec();
 
   if (!mongoData) {
-    const doc = await createUser(fbData.uid);
+    const doc = await mongo_createUser(fbData.uid);
 
     mongoData = doc;
   }

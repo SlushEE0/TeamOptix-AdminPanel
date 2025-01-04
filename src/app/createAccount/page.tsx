@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { AccountCreationStates } from "@/lib/types";
-import { createAccount } from "./utils";
+import { createAccount, mongoCreateAccount } from "./utils";
 import PasswordBlock from "@/components/PasswordBlock";
 
 export default function CreateAccount() {
@@ -38,12 +38,13 @@ export default function CreateAccount() {
       return;
     }
 
-    const res = await createAccount(params);
+    const [res, uid] = await createAccount(params);
 
     toast.dismiss(loader);
     switch (res) {
       case AccountCreationStates.SUCCESS:
         toast.success("Account Created Successfully");
+        mongoCreateAccount(uid);
         break;
       case AccountCreationStates.INVALID_CODE:
         toast.error("Invalid Creation Code");

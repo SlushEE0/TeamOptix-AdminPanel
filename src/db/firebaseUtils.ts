@@ -78,16 +78,17 @@ export async function getCurrentUser() {
   return firebaseAuth.currentUser;
 }
 
-export async function createUser(
+export async function fb_createUser(
   email: string,
   password: string,
   displayName: string
-) {
+): Promise<[AccountCreationStates, string]> {
   let userRecord: UserRecord;
   try {
     userRecord = await firebaseAdminApp.auth().getUserByEmail(email);
 
-    if (userRecord.email === email) return AccountCreationStates.IN_USE;
+    if (userRecord.email === email)
+      return [AccountCreationStates.IN_USE, userRecord.uid];
   } catch {
     userRecord = await firebaseAdminApp.auth().createUser({
       email,
@@ -97,12 +98,12 @@ export async function createUser(
 
     firebaseAdminApp
       .auth()
-      .setCustomUserClaims(userRecord.uid, { member: true });
+      .setCustomUserClaims(userRecord.uid, { member: true, admin: true });
 
-    if (!userRecord) return AccountCreationStates.ERROR;
+    if (!userRecord) return [AccountCreationStates.ERROR, ""];
   }
 
-  return AccountCreationStates.SUCCESS;
+  return [AccountCreationStates.SUCCESS, userRecord.uid];
 }
 
 export async function loginWithPersistedData() {

@@ -4,9 +4,9 @@ import { UserRecord } from "firebase-admin/lib/auth/user-record";
 
 import { AccountCreationStates } from "@/lib/types";
 import { firebaseAdminApp } from "@/db/firebaseInit";
-import models from "@/db/mongo";
+import models, { mongo_createUser } from "@/db/mongo";
 import { NextRequest } from "next/server";
-import { createUser } from "@/db/firebaseUtils";
+import { fb_createUser } from "@/db/firebaseUtils";
 
 type t_AccountCreationParams = {
   email: string;
@@ -16,13 +16,15 @@ type t_AccountCreationParams = {
   name: string;
 };
 
-export async function createAccount(loginParams: t_AccountCreationParams) {
+export async function createAccount(
+  loginParams: t_AccountCreationParams
+): Promise<[AccountCreationStates, string]> {
   if (loginParams.code.length !== 5) {
-    return AccountCreationStates.INVALID_CODE;
+    return [AccountCreationStates.INVALID_CODE, ""];
   }
 
   if (loginParams.password !== loginParams.confirmPassword) {
-    return AccountCreationStates.PASSWORD_MISMATCH;
+    return [AccountCreationStates.PASSWORD_MISMATCH, ""];
   }
 
   const codeExists = await models.AccountCode.exists({
@@ -30,7 +32,15 @@ export async function createAccount(loginParams: t_AccountCreationParams) {
     type: "create"
   }).exec();
 
-  if (!codeExists?._id) return AccountCreationStates.INVALID_CODE;
+  if (!codeExists?._id) return [AccountCreationStates.INVALID_CODE, ""];
 
-  return createUser(loginParams.email, loginParams.password, loginParams.name);
+  return fb_createUser(
+    loginParams.email,
+    loginParams.password,
+    loginParams.name
+  );
+}
+
+export async function mongoCreateAccount(uid: string) {
+  return mongo_createUser(uid);
 }

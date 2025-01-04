@@ -64,7 +64,7 @@ export async function mongoDisconnect() {
   disconnect();
 }
 
-export async function createUser(uid: string) {
+export async function mongo_createUser(uid: string) {
   const newUser = new models.User({
     uid,
     lastCheckIn: 0,
