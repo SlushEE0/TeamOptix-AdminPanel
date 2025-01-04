@@ -69,6 +69,7 @@ export enum CodeValidationStates {
   INVALID,
   ENDED,
   NO_SESSION,
+  WRONG_TIME,
   ERROR
 }
 

@@ -20,5 +20,9 @@ export async function getAllCodes() {
 }
 
 export async function deleteCode(codeName: string) {
-  return await models.Code.findOneAndDelete({ key: codeName });
+  const res = await models.Code.findOneAndDelete({ value: codeName })
+    .lean()
+    .exec();
+
+  return { ...res, _id: res?._id.toString() };
 }
