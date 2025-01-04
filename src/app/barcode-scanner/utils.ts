@@ -1,4 +1,4 @@
-const BASE_URL = 'https://optixtoolkit-backend-production-abcd.up.railway.app';
+const BASE_URL = 'http://localhost:4000';
 
 export const getInventoryByBarcodeID = async (barcodeId: string) => {
   const response = await fetch(`${BASE_URL}/inventory/${barcodeId}`);
@@ -6,13 +6,13 @@ export const getInventoryByBarcodeID = async (barcodeId: string) => {
   return response.json();
 };
 
-export const postTool = async ({ barcodeId, name, category, reserverID }: { barcodeId: string; name: string; category: string; reserverID: string }) => {
+export const postTool = async ({ name, category, reserverID }: { name: string; category: string; reserverID: string }) => {
   const response = await fetch(`${BASE_URL}/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ endpoint: 'post-tool', barcodeId, name, category, reserverID }),
+    body: JSON.stringify({ "endpoint": 'post-tool', name, category, reserverID }),
   });
   if (!response.ok) throw new Error('Failed to reserve tool');
   return response.json();
