@@ -141,7 +141,7 @@ export async function validateCode(code: string, userId: string) {
 
   if (codeDoc.key === "checkInPassword") {
     const session = await getLoggingSession();
-    if (session !== -2) return;
+    if (session !== -2) return [CodeValidationStates.ALREADY_STARTED, 0];
 
     startLoggingSession(code, userId);
 
