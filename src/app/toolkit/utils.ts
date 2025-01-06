@@ -120,47 +120,32 @@ async function endLoggingSession() {
 }
 
 export async function validateCode(code: string, userId: string) {
-  //! TODO: Database Valid dates. Currently hardcoded
-
-  console.warn("TIMECHECKING IS CURRENTTLY HARDCODED");
-  console.warn("DB BASED DATES ASAP");
-
-  const DAYS = [
-    "sunday",
-    "monday",
-    "tuesday",
-    "wednesday",
-    "thursday",
-    "friday",
-    "saturday"
-  ] as const;
-
-  const date = new Date();
-
-  const day = DAYS[date.getDay()];
-  const hour = date.getHours();
-  const minute = date.getMinutes();
-
-  // if (hour < valid[day].start.hour) {
-  //   return [CodeValidationStates.WRONG_TIME, 0];
-  // }
-  // if (hour > valid[day].end.hour) {
-  //   return [CodeValidationStates.WRONG_TIME, 0];
-  // }
-  // if (hour === valid[day].end.hour && minute > valid[day].start.minute) {
-  //   return [CodeValidationStates.WRONG_TIME, 0];
-  // }
-
   const codeDoc = await models.Code.findOne({ value: code }).lean().exec();
 
   if (!codeDoc) {
     return [CodeValidationStates.INVALID, 0];
   }
 
+  const currentTimeMS = Date.now();
+  const test = new Date();
+  test.setTime(currentTimeMS);
+
+  console.log(test.toString());
+
+  if (
+    codeDoc.startTimeMS > currentTimeMS ||
+    codeDoc.endTimeMS < currentTimeMS
+  ) {
+    return [CodeValidationStates.WRONG_TIME, 0];
+  }
+
   if (codeDoc.key === "checkInPassword") {
+    const session = await getLoggingSession();
+    if (session !== -2) return;
+
     startLoggingSession(code, userId);
 
-    return [CodeValidationStates.STARTED, 0];
+    return [CodeValidationStates.SESSION_START, 0];
   }
 
   if (codeDoc.key === "checkOutPassword") {
@@ -173,7 +158,7 @@ export async function validateCode(code: string, userId: string) {
       return [CodeValidationStates.NO_SESSION, 0];
     }
 
-    return [CodeValidationStates.ENDED, res / 1000 / 60];
+    return [CodeValidationStates.SESSION_END, res / 1000 / 60];
   }
 
   return [CodeValidationStates.INVALID, 0];

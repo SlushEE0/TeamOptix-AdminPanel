@@ -98,14 +98,14 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
     const [state, minutesLogged] = await validateCode(code, userData._id);
 
     switch (state) {
-      case CodeValidationStates.STARTED:
+      case CodeValidationStates.SESSION_START:
         toast.success("Session started");
         updateIsLogging();
         break;
       case CodeValidationStates.INVALID:
         toast.error("Invalid code");
         break;
-      case CodeValidationStates.ENDED:
+      case CodeValidationStates.SESSION_END:
         toast.success(
           `Session ended. Logged ${minutesLogged.toFixed(2)} minutes`
         );

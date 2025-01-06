@@ -149,11 +149,20 @@ export default function CreateCode() {
     }
   };
 
-  const onInput = function (e: ChangeEvent<HTMLInputElement>) {
+  const onInput1 = function (e: ChangeEvent<HTMLInputElement>) {
     return SETcodes((curr) => {
       return {
         ...curr,
         code: e.target.value || ""
+      };
+    });
+  };
+
+  const onInput2 = function (e: ChangeEvent<HTMLInputElement>) {
+    return SETcodes((curr) => {
+      return {
+        ...curr,
+        code2: e.target.value || ""
       };
     });
   };
@@ -215,14 +224,14 @@ export default function CreateCode() {
               <Input
                 data-main
                 placeholder={codeType === "pair" ? "Check In" : "Code"}
-                onChange={onInput}
+                onChange={onInput1}
                 value={codes.code}
               />
 
               {codeType === "pair" && (
                 <Input
                   placeholder="Check Out"
-                  onChange={onInput}
+                  onChange={onInput2}
                   value={codes.code2}
                 />
               )}
