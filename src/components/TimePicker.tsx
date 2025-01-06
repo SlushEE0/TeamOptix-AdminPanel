@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { CalendarCheck } from "lucide-react";
 import { TimeInput } from "@nextui-org/react";
 import { Time } from "@internationalized/date";
@@ -21,9 +21,11 @@ type props = { SETtime: Dispatch<SetStateAction<[number, number]>> };
 export default function TimePicker({ SETtime }: props) {
   const [date, SETdate] = useState<Date | undefined>(new Date());
   const [startTime, SETstartTime] = useState(new Time(9, 0));
-  const [endTime, SETendTime] = useState(new Time(17, 0));
+  const [endTime, SETendTime] = useState(new Time(17, 30));
 
-  
+  useEffect(() => {
+    submitTime();
+  }, [])
 
   const submitTime = function () {
     const dateCpy = date;
@@ -45,10 +47,10 @@ export default function TimePicker({ SETtime }: props) {
   return (
     <Dialog>
       <DialogTrigger className="w-full flex gap-4 h-10">
-        <div className="border rounded-md h-10 grow flex items-center justify-start pl-3">
+        <div className="rounded-md h-10 grow flex items-center justify-start pl-3 transition-colors border border-input bg-background hover:bg-accent hover:text-accent-foreground">
           {getPrettyDateString(date, startTime, endTime)}
         </div>
-        <div className="border rounded-md h-10 w-10 flex items-center justify-center p-1">
+        <div className="rounded-md h-10 w-10 flex items-center justify-center p-1 transition-colors border border-input bg-background hover:bg-accent hover:text-accent-foreground">
           <CalendarCheck width={"full"} />
         </div>
       </DialogTrigger>
