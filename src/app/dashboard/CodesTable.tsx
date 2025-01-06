@@ -2,6 +2,7 @@
 
 import React, { memo, useContext, useEffect, useState } from "react";
 import { Lexend } from "next/font/google";
+import { Time } from "@internationalized/date";
 
 import {
   Table,
@@ -14,6 +15,7 @@ import {
 } from "@nextui-org/table";
 
 import { CodesContext } from "./DataWrapper";
+import { getPrettyDateString } from "@/lib/utils";
 
 const lexend = Lexend({
   weight: "300",
@@ -94,17 +96,33 @@ function CodesTable() {
         <TableColumn key={"value"} allowsSorting>
           Code
         </TableColumn>
+        <TableColumn key={"time"}>Valid Time</TableColumn>
         <TableColumn key={"key"} allowsSorting className="text-right">
           Type
         </TableColumn>
       </TableHeader>
       <TableBody items={tableData}>
         {(item) => {
+          const startDate = new Date();
+          startDate.setTime(item.startTimeMS || 0);
+
+          const endDate = new Date();
+          endDate.setTime(item.endTimeMS || 0);
+
+          const startTime = new Time(
+            startDate.getHours(),
+            startDate.getMinutes()
+          );
+          const endTime = new Time(endDate.getHours(), endDate.getMinutes());
+
           return (
             <TableRow
               key={item._id}
               className="hover:bg-[#27272a] transition-all">
               <TableCell>{item.value}</TableCell>
+              <TableCell>
+                {getPrettyDateString(startDate, startTime, endTime)}
+              </TableCell>
               <TableCell className="text-right">{item.key}</TableCell>
             </TableRow>
           );

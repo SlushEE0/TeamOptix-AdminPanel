@@ -47,7 +47,7 @@ export default function CreateCode() {
   const [codes, SETcodes] = useState({ code: "", code2: "" });
   const [allCodes, SETallCodes] = useContext(CodesContext);
 
-  const [isCalendarOpen, SETisCalendarOpen] = useState(false);
+  const [time, SETtime] = useState<[number, number]>([0, 0]);
 
   const onTypeChange = function (type: t_CodeType | "pair") {
     SETcodeType(type);
@@ -62,11 +62,15 @@ export default function CreateCode() {
     if (codeType === "pair") {
       const doc = await createCode({
         key: "checkInPassword",
-        value: codes.code
+        value: codes.code,
+        startTimeMS: time[0],
+        endTimeMS: time[1]
       });
       const doc2 = await createCode({
         key: "checkOutPassword",
-        value: codes.code2
+        value: codes.code2,
+        startTimeMS: time[0],
+        endTimeMS: time[1]
       });
 
       //_id will always be defined :)
@@ -76,17 +80,43 @@ export default function CreateCode() {
       SETallCodes((curr) => {
         return [
           ...curr,
-          { key: "checkInPassword", value: codes.code, _id: id },
-          { key: "checkOutPassword", value: codes.code2, _id: id2 }
+          {
+            key: "checkInPassword",
+            value: codes.code,
+            _id: id,
+            startTimeMS: time[0],
+            endTimeMS: time[1]
+          },
+          {
+            key: "checkOutPassword",
+            value: codes.code2,
+            _id: id2,
+            startTimeMS: time[0],
+            endTimeMS: time[1]
+          }
         ];
       });
     } else {
-      const doc = await createCode({ key: codeType, value: codes.code });
+      const doc = await createCode({
+        key: codeType,
+        value: codes.code,
+        startTimeMS: time[0],
+        endTimeMS: time[1]
+      });
 
       const id = doc as string; // _id will always be defined :)
 
       SETallCodes((curr) => {
-        return [...curr, { key: codeType, value: codes.code, _id: id }];
+        return [
+          ...curr,
+          {
+            key: codeType,
+            value: codes.code,
+            _id: id,
+            startTimeMS: time[0],
+            endTimeMS: time[1]
+          }
+        ];
       });
     }
 
@@ -180,7 +210,7 @@ export default function CreateCode() {
                 </SelectGroup>
               </SelectContent>
             </Select>
-            <TimePicker />
+            <TimePicker {...{ SETtime }} />
             <div className="w-full flex gap-4">
               <Input
                 data-main

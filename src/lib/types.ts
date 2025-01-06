@@ -19,8 +19,8 @@ export type t_MongoUserData = {
 export type t_Code = {
   value: string;
   key: t_CodeType;
-  // startTimeMS: number;
-  // endTimeMS: number;
+  startTimeMS: number;
+  endTimeMS: number;
 };
 
 export type t_AccountCode = {

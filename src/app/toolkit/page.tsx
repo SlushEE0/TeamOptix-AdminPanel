@@ -89,9 +89,7 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
     updateIsLogging();
   }, []);
 
-  const handleCodeSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleCodeSubmit = async (e: FormData) => {
     if (!code) {
       toast.error("Please enter a code");
       return;
@@ -134,10 +132,12 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
   const getTimeStr = function () {
     if (userData.seconds === 0) return "No Hours Logged";
 
-    const hours = userData.seconds / 1000 / 60 / 60;
+    const hours = userData.seconds / 60 / 60;
     const minutes = (hours % 1) * 60;
 
-    return `${Math.round(hours)} Hours and ${Math.round(minutes)} Minutes`;
+    console.log(hours);
+
+    return `${Math.floor(hours)} Hours and ${Math.round(minutes)} Minutes`;
   };
 
   const getLoggingTextColor = function () {
@@ -164,7 +164,7 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
             <CardTitle className={lexendThick.className}>Enter Code</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleCodeSubmit}>
+            <form action={handleCodeSubmit}>
               <Input
                 type="text"
                 placeholder="x93hsd"

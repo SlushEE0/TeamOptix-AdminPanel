@@ -71,8 +71,6 @@ export async function getLoggingSession() {
       algorithms: ["HS256"]
     });
   } catch (err) {
-    console.warn("Invalid JWT");
-
     return -2;
   }
 
@@ -88,8 +86,6 @@ async function endLoggingSession() {
       algorithms: ["HS256"]
     });
   } catch (err) {
-    console.warn("Invalid JWT");
-
     return -2;
   }
 
