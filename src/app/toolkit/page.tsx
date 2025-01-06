@@ -89,7 +89,7 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
     updateIsLogging();
   }, []);
 
-  const handleCodeSubmit = async () => {
+  const handleCodeSubmit = async (e: FormData) => {
     if (!code) {
       toast.error("Please enter a code");
       return;
@@ -98,14 +98,14 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
     const [state, minutesLogged] = await validateCode(code, userData._id);
 
     switch (state) {
-      case CodeValidationStates.STARTED:
+      case CodeValidationStates.SESSION_START:
         toast.success("Session started");
         updateIsLogging();
         break;
       case CodeValidationStates.INVALID:
         toast.error("Invalid code");
         break;
-      case CodeValidationStates.ENDED:
+      case CodeValidationStates.SESSION_END:
         toast.success(
           `Session ended. Logged ${minutesLogged.toFixed(2)} minutes`
         );
@@ -132,10 +132,12 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
   const getTimeStr = function () {
     if (userData.seconds === 0) return "No Hours Logged";
 
-    const hours = userData.seconds / 1000 / 60 / 60;
+    const hours = userData.seconds / 60 / 60;
     const minutes = (hours % 1) * 60;
 
-    return `${Math.round(hours)} Hours and ${Math.round(minutes)} Minutes`;
+    console.log(hours);
+
+    return `${Math.floor(hours)} Hours and ${Math.round(minutes)} Minutes`;
   };
 
   const getLoggingTextColor = function () {
@@ -162,19 +164,19 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
             <CardTitle className={lexendThick.className}>Enter Code</CardTitle>
           </CardHeader>
           <CardContent>
-            <Input
-              type="text"
-              placeholder="x93hsd"
-              value={code}
-              onChange={(e) => SETcode(e.target.value)}
-              className="mb-4"
-            />
+            <form action={handleCodeSubmit}>
+              <Input
+                type="text"
+                placeholder="x93hsd"
+                value={code}
+                onChange={(e) => SETcode(e.target.value)}
+                className="mb-4"
+              />
+              <Button className="w-full">
+                {isLogging ? "Check Out" : "Check In"}
+              </Button>
+            </form>
           </CardContent>
-          <CardFooter>
-            <Button onClick={handleCodeSubmit} className="w-full">
-              {isLogging ? "Check Out" : "Check In"}
-            </Button>
-          </CardFooter>
         </Card>
         <Card className="mb-4 absolute left-3 top-3 hidden xl:block">
           <CardHeader>

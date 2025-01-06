@@ -33,7 +33,9 @@ const schema_Users = new Schema<t_MongoUserData>({
 
 const schema_Codes = new Schema<t_Code>({
   key: String,
-  value: String
+  value: String,
+  startTimeMS: Number,
+  endTimeMS: Number
 });
 
 const schema_AccountCodes = new Schema<t_AccountCode>({

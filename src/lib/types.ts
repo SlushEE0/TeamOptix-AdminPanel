@@ -19,6 +19,8 @@ export type t_MongoUserData = {
 export type t_Code = {
   value: string;
   key: t_CodeType;
+  startTimeMS: number;
+  endTimeMS: number;
 };
 
 export type t_AccountCode = {
@@ -65,11 +67,19 @@ export enum SessionStates {
 }
 
 export enum CodeValidationStates {
-  STARTED,
+  SESSION_START,
   INVALID,
-  ENDED,
+  SESSION_END,
   NO_SESSION,
   WRONG_TIME,
+  ALREADY_STARTED,
+  ERROR
+}
+
+export enum PasswordResetStates {
+  SUCCESS,
+  NO_ACCOUNT,
+  INVALID_EMAIL,
   ERROR
 }
 
