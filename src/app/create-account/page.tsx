@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { AccountCreationStates } from "@/lib/types";
-import { createAccount, mongoCreateAccount } from "./utils";
+import { createAccount } from "./utils";
 import PasswordBlock from "@/components/PasswordBlock";
 import { validateAuth } from "../login/utils";
 
