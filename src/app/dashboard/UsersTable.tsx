@@ -33,7 +33,7 @@ import { getUserDataByID } from "../user/[userid]/utils";
 function UsersTable() {
   const [items, SETitems] = useContext(UsersContext);
   const [sortedItems, SETsortedItems] = useState(items);
-  const [autoLoad, SETautoLoad] = useState(false);
+  const [autoLoad, SETautoLoad] = useState(true);
 
   const [isLoading, SETisLoading] = useState(true);
   const [sortDescriptor, SETsortDescriptor] = useState<SortDescriptor>({});
@@ -44,25 +44,24 @@ function UsersTable() {
   const router = useRouter();
 
   const load = useCallback(async () => {
+    if (!isLoading) return;
+
     const newItems = await getPage();
 
     SETitems((currItems) => [...currItems, ...newItems]);
     SETsortedItems((currItems) => [...currItems, ...newItems]);
-
-    if (await isLoadingFinished(items.length)) {
-      SETisLoading(false);
-    }
-  }, []);
+  }, [SETitems]);
 
   useEffect(() => {
-    if (loaderVisible) load();
-  }, [loaderVisible, load]);
+    if (isLoading) load();
+  }, [load]);
 
   useEffect(() => {
     sorter(sortDescriptor);
-    (async () => {
-      if (!(await isLoadingFinished(items.length))) load();
-    })();
+
+    isLoadingFinished(items.length).then((res) => {
+      SETisLoading(!res);
+    });
   }, [items]);
 
   const sorter = function (descriptor: SortDescriptor) {

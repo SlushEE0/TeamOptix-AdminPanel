@@ -14,12 +14,14 @@ export async function setPageSize(newSize: number) {
   pageSize = newSize;
 }
 
-export async function getPage() {
+export async function getPage() {  
   const docs = await models.User.find({})
     .limit(pageSize)
     .skip(docsRead)
     .lean()
     .exec();
+
+  docsRead = docs.length;
 
   let fbData: Omit<
     UserRecord & With_id<t_MongoUserData> & { role: t_Role },
@@ -60,11 +62,14 @@ export async function getPage() {
 
 export async function getDocumentCount() {
   const docs = await models.User.estimatedDocumentCount().exec();
+
   return docs - nonames;
 }
 
-export async function isLoadingFinished(itemsLen?: number) {
-  if ((await getDocumentCount()) <= docsRead) return false;
+export async function isLoadingFinished(itemsLen: number) {
+  console.log(itemsLen)
 
-  return true;
+  if ((await getDocumentCount()) <= (itemsLen || 0)) return true;
+
+  return false;
 }
