@@ -56,10 +56,10 @@ async function startLoggingSession(startCode: string, userId: string) {
   const jwt = await new SignJWT({ startCode, timeMS, userId })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuer("OptixToolkit Backend")
-    .setExpirationTime("7 days from now")
+    .setExpirationTime("10 hours")
     .sign(jwtSecret);
 
-  cookies().set("loggingSession", jwt);
+  await cookies().set("loggingSession", jwt);
 }
 
 export async function getLoggingSession() {
@@ -138,30 +138,6 @@ export async function validateCode(code: string, userId: string) {
     "friday",
     "saturday"
   ] as const;
-
-  //! TODO: REMOVE ANY
-  const valid: any = {
-    saturday: {
-      start: {
-        hour: 9,
-        minute: 0
-      },
-      end: {
-        hour: 17,
-        minute: 30
-      }
-    }
-    // friday: {
-    //   start: {
-    //     hour: 21,
-    //     minute: 45
-    //   },
-    //   end: {
-    //     hour: 21,
-    //     minute: 50
-    //   }
-    // }
-  } as const;
 
   const date = new Date();
 

@@ -1,6 +1,8 @@
 import { ChangeEvent, useContext, useState } from "react";
 import toast from "react-hot-toast";
 import { Lexend } from "next/font/google";
+import { DatePicker, DateRangePicker } from "@nextui-org/react";
+import { parseAbsolute } from "@internationalized/date";
 
 import {
   Select,
@@ -26,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { createCode } from "./utils";
 import { CodesContext } from "./DataWrapper";
 import { getRandomTeam } from "@/lib/teamsLib";
+import TimePicker from "@/components/TimePicker";
 
 const lexend = Lexend({
   weight: "300",
@@ -43,6 +46,8 @@ export default function CreateCode() {
   const [codeType, SETcodeType] = useState<t_CodeType | "pair">();
   const [codes, SETcodes] = useState({ code: "", code2: "" });
   const [allCodes, SETallCodes] = useContext(CodesContext);
+
+  const [isCalendarOpen, SETisCalendarOpen] = useState(false);
 
   const onTypeChange = function (type: t_CodeType | "pair") {
     SETcodeType(type);
@@ -115,8 +120,6 @@ export default function CreateCode() {
   };
 
   const onInput = function (e: ChangeEvent<HTMLInputElement>) {
-    const main = e.target.getAttribute("data-main");
-
     return SETcodes((curr) => {
       return {
         ...curr,
@@ -132,7 +135,7 @@ export default function CreateCode() {
         Create Code
       </h1>
 
-      <Dialog>
+      <Dialog modal={false}>
         <DialogTrigger className="w-full h-[calc(100%-3rem)]">
           <div
             className={`bg-white w-full h-full text-lg  ${buttonVariants({
@@ -177,6 +180,7 @@ export default function CreateCode() {
                 </SelectGroup>
               </SelectContent>
             </Select>
+            <TimePicker />
             <div className="w-full flex gap-4">
               <Input
                 data-main

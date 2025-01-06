@@ -89,7 +89,9 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
     updateIsLogging();
   }, []);
 
-  const handleCodeSubmit = async () => {
+  const handleCodeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     if (!code) {
       toast.error("Please enter a code");
       return;
@@ -162,19 +164,19 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
             <CardTitle className={lexendThick.className}>Enter Code</CardTitle>
           </CardHeader>
           <CardContent>
-            <Input
-              type="text"
-              placeholder="x93hsd"
-              value={code}
-              onChange={(e) => SETcode(e.target.value)}
-              className="mb-4"
-            />
+            <form onSubmit={handleCodeSubmit}>
+              <Input
+                type="text"
+                placeholder="x93hsd"
+                value={code}
+                onChange={(e) => SETcode(e.target.value)}
+                className="mb-4"
+              />
+              <Button className="w-full">
+                {isLogging ? "Check Out" : "Check In"}
+              </Button>
+            </form>
           </CardContent>
-          <CardFooter>
-            <Button onClick={handleCodeSubmit} className="w-full">
-              {isLogging ? "Check Out" : "Check In"}
-            </Button>
-          </CardFooter>
         </Card>
         <Card className="mb-4 absolute left-3 top-3 hidden xl:block">
           <CardHeader>
