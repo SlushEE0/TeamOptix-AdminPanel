@@ -42,13 +42,12 @@ export default function CreateAccount() {
       return;
     }
 
-    const [res, uid] = await createAccount(params);
+    const state = await createAccount(params);
 
     toast.dismiss(loader);
-    switch (res) {
+    switch (state) {
       case AccountCreationStates.SUCCESS:
         toast.success("Account Created Successfully");
-        mongoCreateAccount(uid);
         validateAuth(params.email, params.password);
         router.push('/toolkit');
         break;

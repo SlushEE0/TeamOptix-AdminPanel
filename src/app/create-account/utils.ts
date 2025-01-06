@@ -18,13 +18,13 @@ type t_AccountCreationParams = {
 
 export async function createAccount(
   loginParams: t_AccountCreationParams
-): Promise<[AccountCreationStates, string]> {
+): Promise<AccountCreationStates> {
   if (loginParams.code.length !== 5) {
-    return [AccountCreationStates.INVALID_CODE, ""];
+    return AccountCreationStates.INVALID_CODE;
   }
 
   if (loginParams.password !== loginParams.confirmPassword) {
-    return [AccountCreationStates.PASSWORD_MISMATCH, ""];
+    return AccountCreationStates.PASSWORD_MISMATCH;
   }
 
   const codeExists = await models.AccountCode.exists({
@@ -32,15 +32,17 @@ export async function createAccount(
     type: "create"
   }).exec();
 
-  if (!codeExists?._id) return [AccountCreationStates.INVALID_CODE, ""];
+  if (!codeExists?._id) return AccountCreationStates.INVALID_CODE;
 
-  return fb_createUser(
+  const [state, uid] = await fb_createUser(
     loginParams.email,
     loginParams.password,
     loginParams.name
   );
-}
 
-export async function mongoCreateAccount(uid: string) {
-  return mongo_createUser(uid);
+  if (state === AccountCreationStates.SUCCESS) {
+    mongo_createUser(uid);
+  }
+
+  return state;
 }
