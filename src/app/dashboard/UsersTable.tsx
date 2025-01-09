@@ -22,18 +22,17 @@ import {
   User
 } from "@nextui-org/react";
 import { NextUIProvider } from "@nextui-org/system";
+import toast from "react-hot-toast";
 
 import useOnScreen from "@/lib/useOnScreen";
 import { unixToFancyDate } from "@/lib/utils";
-import { getPage, isLoadingFinished } from "./pagination";
+import { getPage } from "./pagination";
 import { UsersContext } from "./DataWrapper";
-import toast from "react-hot-toast";
 import { getUserDataByID } from "../user/[userid]/utils";
 
 function UsersTable() {
   const [items, SETitems] = useContext(UsersContext);
   const [sortedItems, SETsortedItems] = useState(items);
-  const [autoLoad, SETautoLoad] = useState(true);
 
   const [isLoading, SETisLoading] = useState(true);
   const [sortDescriptor, SETsortDescriptor] = useState<SortDescriptor>({});
@@ -43,30 +42,26 @@ function UsersTable() {
 
   const router = useRouter();
 
-  const load = useCallback(async () => {
+  const load = async function () {
     if (!isLoading) return;
 
     const newItems = await getPage();
 
+    if (!newItems) return SETisLoading(false);
+
     SETitems((currItems) => [...currItems, ...newItems]);
     SETsortedItems((currItems) => [...currItems, ...newItems]);
-  }, [SETitems]);
+  };
 
   useEffect(() => {
     if (isLoading) load();
-  }, [load]);
 
-  useEffect(() => {
     sorter(sortDescriptor);
+  }, [items, isLoading, load]);
 
-    isLoadingFinished(items.length).then((res) => {
-      SETisLoading(!res);
-    });
-  }, [items]);
+  console.log(isLoading);
 
   const sorter = function (descriptor: SortDescriptor) {
-    console.log(descriptor);
-
     switch (descriptor.column) {
       case "hours":
         SETsortedItems((data) => {
@@ -147,13 +142,6 @@ function UsersTable() {
         isHeaderSticky
         sortDescriptor={sortDescriptor}
         onSortChange={sorter}
-        bottomContent={
-          isLoading ? (
-            <div className="flex w-full justify-center border-none">
-              <Spinner size="lg" ref={loaderRef} color="success" />
-            </div>
-          ) : null
-        }
         onRowAction={onNameClicked}>
         <TableHeader>
           <TableColumn key={"user"} allowsSorting>
@@ -200,6 +188,11 @@ function UsersTable() {
           }}
         </TableBody>
       </Table>
+      {isLoading && (
+        <div className="flex w-full justify-center border-none">
+          <Spinner size="lg" ref={loaderRef} color="success" />
+        </div>
+      )}
     </NextUIProvider>
   );
 }

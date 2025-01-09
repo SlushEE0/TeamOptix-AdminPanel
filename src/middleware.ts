@@ -3,22 +3,32 @@ import { NextRequest, NextResponse } from "next/server";
 import { validateSession } from "./lib/session";
 import { SessionStates } from "./lib/types";
 
+const redirect = function (reqUrl: URL, pathname: string) {
+  reqUrl.pathname = pathname;
+
+  return NextResponse.redirect(reqUrl);
+};
+
 export async function middleware(req: NextRequest) {
   const sessionData = await validateSession();
-  const reqUrl = new URL(req.url);
+  const reqUrl = req.nextUrl.clone();
 
   if (!sessionData) {
-    return NextResponse.redirect(`${new URL(req.url).origin}/login`);
+    return redirect(reqUrl, `/login`);
   }
 
   const [level, payload] = sessionData;
 
-  if (level === SessionStates.ADMIN) return;
+  if (level === SessionStates.ADMIN) {
+    if (reqUrl.pathname == `/`) return redirect(reqUrl, `/dashboard`);
+
+    return;
+  }
   if (level === SessionStates.USER) {
-    if (reqUrl.pathname == `/toolkit`) return;
+    return redirect(reqUrl, `/toolkit`);
   }
 
-  return NextResponse.redirect(`${new URL(req.url).origin}/login`);
+  return redirect(reqUrl, `/login`);
 }
 
 export const config = {

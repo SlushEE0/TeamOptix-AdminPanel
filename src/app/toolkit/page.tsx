@@ -53,9 +53,8 @@ export default function Toolkit() {
   return userData ? (
     <LoadedContent {...{ initalData: userData }} />
   ) : (
-    <div className="size-full flex items-center justify-center gap-5">
+    <div className="size-full flex items-center justify-center gap-5 pt-4">
       <Spinner size="lg" />
-      Loading ...
     </div>
   );
 }

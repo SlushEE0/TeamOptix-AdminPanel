@@ -21,7 +21,7 @@ export async function getPage() {
     .lean()
     .exec();
 
-  docsRead = docs.length;
+  docsRead += docs.length;
 
   let fbData: Omit<
     UserRecord & With_id<t_MongoUserData> & { role: t_Role },
@@ -57,12 +57,13 @@ export async function getPage() {
     combinedData ? fbData.push(combinedData) : nonames++;
   }
 
+  if(fbData[0]?._id === undefined) return null;
+
   return fbData;
 }
 
 export async function getDocumentCount() {
   const docs = await models.User.estimatedDocumentCount().exec();
-
   return docs - nonames;
 }
 
