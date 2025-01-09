@@ -23,27 +23,27 @@ export default function TimePicker({ SETtime }: props) {
   const [startTime, SETstartTime] = useState(new Time(9, 0));
   const [endTime, SETendTime] = useState(new Time(17, 30));
 
-  useEffect(() => {
-    submitTime();
-  }, [])
-
   const submitTime = function () {
     const dateCpy = date;
-
+    
     dateCpy?.setHours(startTime.hour);
     dateCpy?.setMinutes(startTime.minute);
-
+    
     const startMillis = dateCpy?.getTime() || 0;
-
+    
     dateCpy?.setHours(endTime.hour);
     dateCpy?.setMinutes(endTime.minute);
-
+    
     const endMillis = dateCpy?.getTime() || 0;
-
+    
     console.log(startMillis, endMillis);
     SETtime([startMillis, endMillis]);
   };
-
+  
+  useEffect(() => {
+    submitTime();
+  }, [submitTime])
+  
   return (
     <Dialog>
       <DialogTrigger className="w-full flex gap-4 h-10">

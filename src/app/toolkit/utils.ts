@@ -8,6 +8,7 @@ import { firebaseAdminApp } from "@/db/firebaseInit";
 import { getSession } from "@/lib/session";
 import models, { mongo_createUser, reconnect } from "@/db/mongo";
 import { CodeValidationStates, t_UserData } from "@/lib/types";
+import { LOGGING_COOKIE_MAXAGE } from "@/lib/config";
 
 const jwtSecret = new TextEncoder().encode("Toolkit-AdminPanel");
 
@@ -56,10 +57,12 @@ async function startLoggingSession(startCode: string, userId: string) {
   const jwt = await new SignJWT({ startCode, timeMS, userId })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuer("OptixToolkit Backend")
-    .setExpirationTime("10 hours")
+    .setExpirationTime("10 hours from now")
     .sign(jwtSecret);
 
-  await cookies().set("loggingSession", jwt);
+  cookies().set("loggingSession", jwt, {
+    maxAge: LOGGING_COOKIE_MAXAGE
+  });
 }
 
 export async function getLoggingSession() {

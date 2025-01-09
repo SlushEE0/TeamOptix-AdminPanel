@@ -14,3 +14,6 @@ export const PRESIDENTS = [
     imgPath: "/presidents/NoahSimon.jpeg"
   }
 ];
+
+export const LOGIN_COOKIE_MAXAGE = 60 * 60 * 24 * 30; // 30 days
+export const LOGGING_COOKIE_MAXAGE = 60 * 60 * 12; // 10 hours

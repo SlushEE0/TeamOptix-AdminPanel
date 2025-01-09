@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import { SessionStates } from "./types";
+import { LOGIN_COOKIE_MAXAGE } from "./config";
 
 const jwtSecret = new TextEncoder().encode("Toolkit-AdminPanel");
 
@@ -13,7 +14,7 @@ type JWTPayload = {
 
 async function encrypt(payload: JWTPayload) {
   // add 7 days unix time
-  const expTime = Math.round(Date.now() / 1000 + 604800);
+  // const expTime = Math.round(Date.now() / 1000 + 604800);
 
   return await new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
@@ -41,7 +42,9 @@ export async function createSession(email: string, isAdmin = false) {
     email,
     isAdmin
   }).then((jwt) => {
-    cookies().set("session", jwt);
+    cookies().set("session", jwt, {
+      maxAge: LOGIN_COOKIE_MAXAGE
+    });
   });
 }
 

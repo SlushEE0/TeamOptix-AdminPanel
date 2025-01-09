@@ -105,11 +105,13 @@ export default function LoginForm() {
               type="button"
               className="w-full p-0 flex justify-between"
               onClick={onGsignIn}>
-              <img
-                src="./googleLogo.svg"
-                alt="google logo"
-                className="h-full p-1"
-              />
+              <div className="aspect-square h-full p-1 flex justify-center items-center">
+                <img
+                  src="./googleLogo.svg"
+                  alt="google logo"
+                  className="relative"
+                />
+              </div>
               <p className="mr-8">Login with Google</p>
               <div></div>
             </Button>
