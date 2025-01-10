@@ -60,13 +60,13 @@ async function startLoggingSession(startCode: string, userId: string) {
     .setExpirationTime("10 hours from now")
     .sign(jwtSecret);
 
-  cookies().set("loggingSession", jwt, {
+  (await cookies()).set("loggingSession", jwt, {
     maxAge: LOGGING_COOKIE_MAXAGE
   });
 }
 
 export async function getLoggingSession() {
-  const jwt = cookies().get("loggingSession")?.value || "";
+  const jwt = (await cookies()).get("loggingSession")?.value || "";
 
   let session;
   try {
@@ -81,7 +81,7 @@ export async function getLoggingSession() {
 }
 
 async function endLoggingSession() {
-  const jwt = cookies().get("loggingSession")?.value || "";
+  const jwt = (await cookies()).get("loggingSession")?.value || "";
 
   let session;
   try {
@@ -118,7 +118,7 @@ async function endLoggingSession() {
     return -1;
   }
 
-  cookies().delete("loggingSession");
+  (await cookies()).delete("loggingSession");
   return duration;
 }
 
