@@ -67,13 +67,13 @@ export enum SessionStates {
 }
 
 export enum CodeValidationStates {
+  ERROR,
   SESSION_START,
   INVALID,
   SESSION_END,
   NO_SESSION,
   WRONG_TIME,
-  ALREADY_STARTED,
-  ERROR
+  ALREADY_STARTED
 }
 
 export enum PasswordResetStates {

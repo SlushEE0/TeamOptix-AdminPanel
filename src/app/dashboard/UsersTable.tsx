@@ -1,13 +1,6 @@
 "use client";
 
-import React, {
-  memo,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState
-} from "react";
+import React, { memo, use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import {
@@ -26,19 +19,26 @@ import toast from "react-hot-toast";
 
 import useOnScreen from "@/lib/useOnScreen";
 import { unixToFancyDate } from "@/lib/utils";
-import { getPage } from "./pagination";
+import {
+  getDocumentCount,
+  getPage,
+  isLoadingFinished,
+  resetLoaded
+} from "./pagination";
 import { UsersContext } from "./DataWrapper";
 import { getUserDataByID } from "../user/[userid]/utils";
 
 function UsersTable() {
-  const [items, SETitems] = useContext(UsersContext);
+  const [items, SETitems] = use(UsersContext);
+  // const allItems = use(getDocumentCount());
+
   const [sortedItems, SETsortedItems] = useState(items);
 
   const [isLoading, SETisLoading] = useState(true);
   const [sortDescriptor, SETsortDescriptor] = useState<SortDescriptor>({});
 
   const loaderRef = useRef<HTMLDivElement>(null);
-  const loaderVisible = useOnScreen(loaderRef);
+  // const loaderVisible = useOnScreen(loaderRef);
 
   const router = useRouter();
 
@@ -47,17 +47,21 @@ function UsersTable() {
 
     const newItems = await getPage();
 
+    // console.log(items.length, allItems);
+
     if (!newItems) return SETisLoading(false);
+
+    // if (!newItems) return;
 
     SETitems((currItems) => [...currItems, ...newItems]);
     SETsortedItems((currItems) => [...currItems, ...newItems]);
   };
 
   useEffect(() => {
-    if (isLoading) load();
+    if (!isLoading) return;
 
-    sorter(sortDescriptor);
-  }, [items, isLoading, load]);
+    load();
+  });
 
   console.log(isLoading);
 
@@ -145,7 +149,7 @@ function UsersTable() {
         onRowAction={onNameClicked}>
         <TableHeader>
           <TableColumn key={"user"} allowsSorting>
-            User
+            Users ({items.length})
           </TableColumn>
           <TableColumn key={"hours"} allowsSorting>
             Build Season Hours

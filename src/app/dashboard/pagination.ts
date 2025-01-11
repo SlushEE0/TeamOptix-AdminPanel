@@ -14,7 +14,7 @@ export async function setPageSize(newSize: number) {
   pageSize = newSize;
 }
 
-export async function getPage() {  
+export async function getPage() {
   const docs = await models.User.find({})
     .limit(pageSize)
     .skip(docsRead)
@@ -57,7 +57,7 @@ export async function getPage() {
     combinedData ? fbData.push(combinedData) : nonames++;
   }
 
-  if(fbData[0]?._id === undefined) return null;
+  if (fbData[0]?._id === undefined) return null;
 
   return fbData;
 }
@@ -67,10 +67,20 @@ export async function getDocumentCount() {
   return docs - nonames;
 }
 
-export async function isLoadingFinished(itemsLen: number) {
-  console.log(itemsLen)
+export async function isLoadingFinished(
+  itemsLen: number,
+  thoughtFinished: boolean
+) {
+  console.log(itemsLen);
+  let ret = false;
 
-  if ((await getDocumentCount()) <= (itemsLen || 0)) return true;
+  if ((await getDocumentCount()) <= (itemsLen || 0)) ret = true;
+  if(thoughtFinished && !ret) resetLoaded(itemsLen);
 
-  return false;
+  return ret;
+}
+
+export async function resetLoaded(docsHad = 0) {
+  docsHad = docsHad;
+  nonames = 0;
 }

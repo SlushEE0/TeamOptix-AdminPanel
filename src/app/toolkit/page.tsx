@@ -17,7 +17,7 @@ import {
 
 import { CodeValidationStates, t_UserData } from "@/lib/types";
 import { unixToFancyDate } from "@/lib/utils";
-import { getLoggingSession, getUserData, validateCode } from "./utils";
+// import { getLoggingSession, getUserData, validateCode } from "./utils";
 import { Code } from "mongodb";
 
 const lexend = Lexend({
@@ -35,18 +35,18 @@ const lexendThick = Lexend({
 export default function Toolkit() {
   const [userData, SETuserData] = useState<t_UserData | null>(null);
 
-  // Fetch user data on component load
   useEffect(() => {
     toast.dismiss();
     (async () => {
-      const data = await getUserData();
+      try {
+        const data = await fetch("/api/user").then((res) => res.json());
 
-      if (data === "ERROR") {
+        SETuserData(data);
+      } catch (e: any) {
         toast.error("Error fetching user data", { duration: 999999 });
+        console.log(e);
         return;
       }
-
-      SETuserData(data);
     })();
   }, []);
 
@@ -65,23 +65,28 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
   const [isLogging, SETisLogging] = useState(false);
 
   const updateIsLogging = async function () {
-    const session = await getLoggingSession();
+    try {
+      const session = await fetch("/api/h-logging").then((res) => res.json());
 
-    if (session === -2) return SETisLogging(false);
+      if (session === -2) return SETisLogging(false);
 
-    if ((session.payload.timeMS as number) < Date.now())
-      return SETisLogging(true);
+      if ((session.payload.timeMS as number) < Date.now())
+        return SETisLogging(true);
+    } catch (e: any) {
+      console.log(e);
+    }
   };
 
   const updateData = async function () {
-    const data = await getUserData();
+    try {
+      const data = await fetch("/api/h-logging").then((res) => res.json());
 
-    if (data === "ERROR") {
+      SETuserData(data);
+    } catch (e: any) {
       toast.error("Error fetching user data", { duration: 999999 });
+      console.log(e);
       return;
     }
-
-    SETuserData(data);
   };
 
   useEffect(() => {
@@ -94,7 +99,24 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
       return;
     }
 
-    const [state, minutesLogged] = await validateCode(code, userData._id);
+    let state: CodeValidationStates,
+      minutesLogged: number = 0;
+
+    try {
+      const res = await fetch("/api/h-logging", {
+        method: "POST",
+        body: JSON.stringify({ code }),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }).then((res) => res.json());
+
+      state = res.state;
+      minutesLogged = res.minutesLogged;
+    } catch (e: any) {
+      console.log(e);
+      state = CodeValidationStates.ERROR;
+    }
 
     switch (state) {
       case CodeValidationStates.SESSION_START:

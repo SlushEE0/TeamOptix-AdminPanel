@@ -12,7 +12,6 @@ import { Label } from "@/components/ui/label";
 import PresidentDVD from "./PresidentDVD";
 import PasswordBlock from "../../components/PasswordBlock";
 
-import { validateAuth } from "./utils";
 import { PRESIDENTS } from "@/lib/config";
 import { AuthStates } from "@/lib/types";
 
@@ -29,7 +28,16 @@ export default function LoginForm() {
     const email = formData.get("email")?.toString() || "";
     const pass = formData.get("password")?.toString() || "";
 
-    const res = await validateAuth(email, pass);
+    let res: AuthStates = AuthStates.ERROR;
+
+    try {
+      res = await fetch("/api/login", {
+        method: "POST",
+        body: JSON.stringify({ email, pass })
+      }).then((res) => res.json());
+    } catch (e) {
+      console.error(e);
+    }
 
     console.log(AuthStates.UNAUTHORIZED);
     switch (res) {
@@ -50,7 +58,7 @@ export default function LoginForm() {
         break;
       case AuthStates.ERROR:
         // console.log("ERROR");
-        toast.error("Backend Is Down :(", { duration: 20000 });
+        toast.error("An error occured :(", { duration: 20000 });
         break;
       default:
         console.log("NO USER");
