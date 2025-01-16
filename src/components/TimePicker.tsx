@@ -1,4 +1,10 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useState
+} from "react";
 import { CalendarCheck } from "lucide-react";
 import { TimeInput } from "@nextui-org/react";
 import { Time } from "@internationalized/date";
@@ -23,27 +29,27 @@ export default function TimePicker({ SETtime }: props) {
   const [startTime, SETstartTime] = useState(new Time(9, 0));
   const [endTime, SETendTime] = useState(new Time(17, 30));
 
-  const submitTime = function () {
+  const submitTime = useCallback(() => {
     const dateCpy = date;
-    
+
     dateCpy?.setHours(startTime.hour);
     dateCpy?.setMinutes(startTime.minute);
-    
+
     const startMillis = dateCpy?.getTime() || 0;
-    
+
     dateCpy?.setHours(endTime.hour);
     dateCpy?.setMinutes(endTime.minute);
-    
+
     const endMillis = dateCpy?.getTime() || 0;
-    
+
     console.log(startMillis, endMillis);
     SETtime([startMillis, endMillis]);
-  };
-  
+  }, [startTime, endTime, date]);
+
   useEffect(() => {
     submitTime();
-  }, [submitTime])
-  
+  }, [startTime, endTime, date, submitTime]);
+
   return (
     <Dialog>
       <DialogTrigger className="w-full flex gap-4 h-10">
@@ -77,7 +83,9 @@ export default function TimePicker({ SETtime }: props) {
             <br />
             <br />
             <DialogClose className="w-full" asChild>
-              <Button type="submit">Select Date</Button>
+              <Button type="submit" onClick={submitTime}>
+                Select Date
+              </Button>
             </DialogClose>
           </form>
         </div>

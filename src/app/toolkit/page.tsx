@@ -16,9 +16,9 @@ import {
 } from "@/components/ui/card";
 
 import { CodeValidationStates, t_UserData } from "@/lib/types";
-import { unixToFancyDate } from "@/lib/utils";
+import { fetcher, unixToFancyDate } from "@/lib/utils";
 // import { getLoggingSession, getUserData, validateCode } from "./utils";
-import { Code } from "mongodb";
+import { getLoggingSession } from "./utils";
 
 const lexend = Lexend({
   weight: "300",
@@ -65,21 +65,19 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
   const [isLogging, SETisLogging] = useState(false);
 
   const updateIsLogging = async function () {
-    try {
-      const session = await fetch("/api/h-logging").then((res) => res.json());
+    const session = await getLoggingSession();
 
-      if (session === -2) return SETisLogging(false);
+    console.log(session);
 
-      if ((session.payload.timeMS as number) < Date.now())
-        return SETisLogging(true);
-    } catch (e: any) {
-      console.log(e);
-    }
+    if (session === -2) return SETisLogging(false);
+
+    if ((session.payload.timeMS as number) < Date.now())
+      return SETisLogging(true);
   };
 
   const updateData = async function () {
     try {
-      const data = await fetch("/api/h-logging").then((res) => res.json());
+      const data = await fetch("/api/user").then((res) => res.json());
 
       SETuserData(data);
     } catch (e: any) {
@@ -103,13 +101,13 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
       minutesLogged: number = 0;
 
     try {
-      const res = await fetch("/api/h-logging", {
+      const res = await fetcher("/api/h-logging", {
         method: "POST",
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ code, userId: userData._id }),
         headers: {
           "Content-Type": "application/json"
         }
-      }).then((res) => res.json());
+      });
 
       state = res.state;
       minutesLogged = res.minutesLogged;
@@ -155,8 +153,6 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
 
     const hours = userData.seconds / 60 / 60;
     const minutes = (hours % 1) * 60;
-
-    console.log(hours);
 
     return `${Math.floor(hours)} Hours and ${Math.round(minutes)} Minutes`;
   };

@@ -42,7 +42,13 @@ const lexendThick = Lexend({
   variable: "--font-sans"
 });
 
-export default function CreateCode() {
+export default function CreateCode({
+  children,
+  className
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   const [codeType, SETcodeType] = useState<t_CodeType | "pair">();
   const [codes, SETcodes] = useState({ code: "", code2: "" });
   const [allCodes, SETallCodes] = useContext(CodesContext);
@@ -168,20 +174,16 @@ export default function CreateCode() {
   };
 
   return (
-    <section
-      className={`flex items-center justify-center flex-wrap size-full ${lexend.className}`}>
-      <h1 className={"text-xl self-start " + lexendThick.className}>
-        Create Code
-      </h1>
-
+    <div {...{ className }}>
       <Dialog modal={false}>
         <DialogTrigger className="w-full h-[calc(100%-3rem)]">
-          <div
+          {/* <div
             className={`bg-white w-full h-full text-lg  ${buttonVariants({
               variant: "default"
             })}`}>
             Create Code
-          </div>
+          </div> */}
+          {children}
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
@@ -245,6 +247,6 @@ export default function CreateCode() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </section>
+    </div>
   );
 }

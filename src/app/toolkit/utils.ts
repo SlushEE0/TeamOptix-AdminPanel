@@ -1,31 +1,55 @@
-import { NextResponse } from "next/server";
+"use server";
+
 import { cookies } from "next/headers";
+import { UserRecord } from "firebase-admin/lib/auth/user-record";
 import { SignJWT, jwtVerify } from "jose";
 
-import models from "@/db/mongo";
-import { CodeValidationStates } from "@/lib/types";
+import { firebaseAdminApp } from "@/db/firebaseInit";
+import { getSession } from "@/lib/session";
+import models, { mongo_createUser, reconnect } from "@/db/mongo";
+import { CodeValidationStates, t_UserData } from "@/lib/types";
 import { LOGGING_COOKIE_MAXAGE } from "@/lib/config";
 
 const jwtSecret = new TextEncoder().encode("Toolkit-AdminPanel");
 
-export async function POST(req: Request) {
-  const { code, userId } = await req.json();
+export async function getUserData() {
+  const jwt = await getSession();
+  const email = jwt?.payload.email as string;
 
-  const { state, minsLogged } = await userAction(code, userId);
-  const cookie = (await cookies()).get("loggingSession")?.value || "";
+  let fbData;
+  try {
+    fbData = await firebaseAdminApp.auth().getUserByEmail(email);
+    fbData = fbData.toJSON() as UserRecord;
+  } catch (e) {
+    console.warn(e);
 
-  const res = NextResponse.json({ state, minsLogged });
-  res.cookies.set("loggingSession", cookie, {
-    maxAge: LOGGING_COOKIE_MAXAGE
-  });
+    return "ERROR";
+  }
 
-  return res;
-}
+  let mongoData = await models.User.findOne({ uid: fbData.uid }).lean().exec();
 
-export async function GET() {
-  const session = await getLoggingSession();
+  if (!mongoData) {
+    const doc = await mongo_createUser(fbData.uid);
 
-  return Response.json(session);
+    mongoData = doc;
+  }
+
+  const sanitizedMongoData = {
+    ...mongoData,
+    _id: mongoData?._id.toString()
+  };
+
+  const role = (() => {
+    if (fbData?.customClaims?.admin) return "admin";
+    if (fbData?.customClaims?.certified) return "certified";
+    return "member";
+  })();
+
+  return {
+    ...fbData,
+    ...sanitizedMongoData,
+    role
+  } as t_UserData;
 }
 
 async function startLoggingSession(startCode: string, userId: string) {
@@ -36,12 +60,12 @@ async function startLoggingSession(startCode: string, userId: string) {
     .setExpirationTime("10 hours from now")
     .sign(jwtSecret);
 
-  (await cookies()).set("loggingSession", jwt);
-
-  console.log("[H-Logging] Session started for user", userId);
+  (await cookies()).set("loggingSession", jwt, {
+    maxAge: LOGGING_COOKIE_MAXAGE
+  });
 }
 
-async function getLoggingSession() {
+export async function getLoggingSession() {
   const jwt = (await cookies()).get("loggingSession")?.value || "";
 
   let session;
@@ -76,6 +100,7 @@ async function endLoggingSession() {
   }
 
   const nowMs = Date.now();
+
   const duration = nowMs - (session.payload.timeMS as number);
   const userId = session.payload.userId;
 
@@ -94,22 +119,14 @@ async function endLoggingSession() {
   }
 
   (await cookies()).delete("loggingSession");
-  console.log("[H-Logging] Session ended for user", userId);
-
   return duration;
 }
 
-async function userAction(code: string, userId: string) {
+export async function validateCode(code: string, userId: string) {
   const codeDoc = await models.Code.findOne({ value: code }).lean().exec();
 
-  const ret = {
-    state: CodeValidationStates.INVALID,
-    minsLogged: 0,
-    cookie: ""
-  };
-
   if (!codeDoc) {
-    return ret;
+    return [CodeValidationStates.INVALID, 0];
   }
 
   const currentTimeMS = Date.now();
@@ -122,38 +139,30 @@ async function userAction(code: string, userId: string) {
     codeDoc.startTimeMS > currentTimeMS ||
     codeDoc.endTimeMS < currentTimeMS
   ) {
-    ret.state = CodeValidationStates.WRONG_TIME;
-    return ret;
+    return [CodeValidationStates.WRONG_TIME, 0];
   }
 
   if (codeDoc.key === "checkInPassword") {
     const session = await getLoggingSession();
-    if (session !== -2) {
-      ret.state = CodeValidationStates.ALREADY_STARTED;
-      return ret;
-    }
+    if (session !== -2) return [CodeValidationStates.ALREADY_STARTED, 0];
 
     startLoggingSession(code, userId);
-    ret.state = CodeValidationStates.SESSION_START;
-    return ret;
+
+    return [CodeValidationStates.SESSION_START, 0];
   }
 
   if (codeDoc.key === "checkOutPassword") {
     const res = await endLoggingSession();
 
     if (res === -1) {
-      ret.state = CodeValidationStates.INVALID;
-      return ret;
+      return [CodeValidationStates.INVALID, 0];
     }
     if (res === -2) {
-      ret.state = CodeValidationStates.NO_SESSION;
-      return ret;
+      return [CodeValidationStates.NO_SESSION, 0];
     }
 
-    ret.minsLogged = res / 1000 / 60;
-    ret.state = CodeValidationStates.SESSION_END;
-    return ret;
+    return [CodeValidationStates.SESSION_END, res / 1000 / 60];
   }
 
-  return ret;
+  return [CodeValidationStates.INVALID, 0];
 }
