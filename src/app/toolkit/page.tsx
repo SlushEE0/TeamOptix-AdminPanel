@@ -17,8 +17,7 @@ import {
 
 import { CodeValidationStates, t_UserData } from "@/lib/types";
 import { fetcher, unixToFancyDate } from "@/lib/utils";
-// import { getLoggingSession, getUserData, validateCode } from "./utils";
-import { getLoggingSession } from "./utils";
+import { getLoggingSession, validateCode } from "./utils";
 
 const lexend = Lexend({
   weight: "300",
@@ -35,18 +34,18 @@ const lexendThick = Lexend({
 export default function Toolkit() {
   const [userData, SETuserData] = useState<t_UserData | null>(null);
 
+  // Fetch user data on component load
   useEffect(() => {
     toast.dismiss();
     (async () => {
-      try {
-        const data = await fetch("/api/user").then((res) => res.json());
+      const data = await fetcher("/api/user");
 
-        SETuserData(data);
-      } catch (e: any) {
+      if (data === "ERROR") {
         toast.error("Error fetching user data", { duration: 999999 });
-        console.log(e);
         return;
       }
+
+      SETuserData(data);
     })();
   }, []);
 
@@ -67,8 +66,6 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
   const updateIsLogging = async function () {
     const session = await getLoggingSession();
 
-    console.log(session);
-
     if (session === -2) return SETisLogging(false);
 
     if ((session.payload.timeMS as number) < Date.now())
@@ -76,15 +73,15 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
   };
 
   const updateData = async function () {
-    try {
-      const data = await fetch("/api/user").then((res) => res.json());
+    //use the api with fetcher function
+    const data = await fetcher("/api/user");
 
-      SETuserData(data);
-    } catch (e: any) {
+    if (data === "ERROR") {
       toast.error("Error fetching user data", { duration: 999999 });
-      console.log(e);
       return;
     }
+
+    SETuserData(data);
   };
 
   useEffect(() => {
@@ -97,24 +94,7 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
       return;
     }
 
-    let state: CodeValidationStates,
-      minutesLogged: number = 0;
-
-    try {
-      const res = await fetcher("/api/h-logging", {
-        method: "POST",
-        body: JSON.stringify({ code, userId: userData._id }),
-        headers: {
-          "Content-Type": "application/json"
-        }
-      });
-
-      state = res.state;
-      minutesLogged = res.minutesLogged;
-    } catch (e: any) {
-      console.log(e);
-      state = CodeValidationStates.ERROR;
-    }
+    const { state, minsLogged } = await validateCode(code, userData._id);
 
     switch (state) {
       case CodeValidationStates.SESSION_START:
@@ -125,9 +105,7 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
         toast.error("Invalid code");
         break;
       case CodeValidationStates.SESSION_END:
-        toast.success(
-          `Session ended. Logged ${minutesLogged.toFixed(2)} minutes`
-        );
+        toast.success(`Session ended. Logged ${minsLogged.toFixed(2)} minutes`);
         updateIsLogging();
         updateData();
         break;
@@ -153,6 +131,8 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
 
     const hours = userData.seconds / 60 / 60;
     const minutes = (hours % 1) * 60;
+
+    console.log(hours);
 
     return `${Math.floor(hours)} Hours and ${Math.round(minutes)} Minutes`;
   };
