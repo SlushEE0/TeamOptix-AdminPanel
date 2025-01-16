@@ -1,5 +1,3 @@
-"use server";
-
 import { NextResponse } from "next/server";
 
 import models from "@/db/mongo";
@@ -20,7 +18,7 @@ export async function GET(req: Request) {
   return NextResponse.json(data);
 }
 
-export async function getPage(skip: number, pageSize = 20) {
+async function getPage(skip: number, pageSize = 20) {
   const docs = await models.User.find({})
     .limit(pageSize)
     .skip(skip)
@@ -68,12 +66,12 @@ export async function getPage(skip: number, pageSize = 20) {
   return fbData;
 }
 
-export async function getDocumentCount() {
+async function getDocumentCount() {
   const docs = await models.User.estimatedDocumentCount().exec();
   return docs;
 }
 
-export async function isLoadingFinished(
+async function isLoadingFinished(
   itemsLen: number,
   thoughtFinished: boolean
 ) {
@@ -85,6 +83,6 @@ export async function isLoadingFinished(
   return ret;
 }
 
-export async function resetLoaded(docsHad = 0) {
+async function resetLoaded(docsHad = 0) {
   docsHad = docsHad;
 }

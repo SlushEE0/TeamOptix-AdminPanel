@@ -6,6 +6,8 @@ import models from "@/db/mongo";
 import { CodeValidationStates } from "@/lib/types";
 import { LOGGING_COOKIE_MAXAGE } from "@/lib/config";
 
+export const dynamic = "force-dynamic";
+
 const jwtSecret = new TextEncoder().encode("Toolkit-AdminPanel");
 
 export async function POST(req: Request) {
