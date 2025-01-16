@@ -42,7 +42,6 @@ export default function TimePicker({ SETtime }: props) {
 
     const endMillis = dateCpy?.getTime() || 0;
 
-    console.log(startMillis, endMillis);
     SETtime([startMillis, endMillis]);
   }, [startTime, endTime, date]);
 
@@ -66,7 +65,6 @@ export default function TimePicker({ SETtime }: props) {
         <div className="flex justify-center items-center">
           <Calendar mode="single" selected={date} onSelect={SETdate} />
           <form
-            action={submitTime}
             className="flex flex-col grow gap-4 h-full pt-12">
             <TimeInput
               onChange={(newTime) => SETstartTime(newTime)}
@@ -83,7 +81,7 @@ export default function TimePicker({ SETtime }: props) {
             <br />
             <br />
             <DialogClose className="w-full" asChild>
-              <Button type="submit" onClick={submitTime}>
+              <Button>
                 Select Date
               </Button>
             </DialogClose>
