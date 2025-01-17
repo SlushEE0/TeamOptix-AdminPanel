@@ -49,7 +49,7 @@ export function getPrettyDateString(
   ];
 
   if (!date) return "No Date Selected";
-  if(date.getTime() < 1000000) return "No Date Selected";
+  if (date.getTime() < 1000000) return "No Date Selected";
 
   const month = months[date.getMonth()];
   const day = date.getDate();
@@ -67,4 +67,35 @@ export function getPrettyDateString(
   }`;
 
   return `${month} ${day}, ${year} -- ${startTimeStr} - ${endTimeStr}`;
+}
+
+export function fetcher<T = any>(
+  url: URL | string,
+  options?: RequestInit,
+  errorHandler?: (e: any) => any
+): Promise<T> {
+  errorHandler
+    ? null
+    : (errorHandler = function (e) {
+        console.log(
+          `[FETCHER] Error when trying to fetch data from ${url.toString()}`
+        );
+        console.warn(e);
+      });
+
+  try {
+    return fetch(url, options).then((res) => res.json());
+  } catch (e) {
+    return errorHandler(e);
+  }
+}
+
+export function toLogged<T>(
+  log: T,
+  message = "[LOGGER]",
+  append = "[DEBUG]"
+): T {
+  console.log(message, log, append);
+
+  return log;
 }

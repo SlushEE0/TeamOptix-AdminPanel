@@ -1,14 +1,24 @@
-"use server";
-
 import { NextResponse } from "next/server";
-import { UserRecord } from "firebase-admin/lib/auth/user-record";
 
 import models from "@/db/mongo";
 import { firebaseAdminApp } from "@/db/firebaseInit";
+import { UserRecord } from "firebase-admin/lib/auth/user-record";
 import { With_id, t_MongoUserData, t_Role } from "@/lib/types";
-import { toLogged } from "@/lib/utils";
 
-export async function getPage(skip: number, pageSize = 20) {
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const skip = parseInt(searchParams.get("skip") || "0");
+  const limit = parseInt(searchParams.get("limit") || "20");
+
+  const data = await getPage(skip, limit);
+
+  console.log(req.url);
+  console.log(data);
+
+  return NextResponse.json(data);
+}
+
+async function getPage(skip: number, pageSize = 20) {
   const docs = await models.User.find({})
     .limit(pageSize)
     .skip(skip)
@@ -56,12 +66,12 @@ export async function getPage(skip: number, pageSize = 20) {
   return fbData;
 }
 
-export async function getDocumentCount() {
+async function getDocumentCount() {
   const docs = await models.User.estimatedDocumentCount().exec();
   return docs;
 }
 
-export async function isLoadingFinished(
+async function isLoadingFinished(
   itemsLen: number,
   thoughtFinished: boolean
 ) {
@@ -73,11 +83,6 @@ export async function isLoadingFinished(
   return ret;
 }
 
-export async function resetLoaded(docsHad = 0) {
+async function resetLoaded(docsHad = 0) {
   docsHad = docsHad;
-}
-
-export async function getPages(pageSize = 20) {
-  const count = await getDocumentCount();
-  return Math.ceil(count / pageSize);
 }

@@ -12,9 +12,10 @@ import { Label } from "@/components/ui/label";
 import PresidentDVD from "./PresidentDVD";
 import PasswordBlock from "../../components/PasswordBlock";
 
-import { validateAuth } from "./utils";
 import { PRESIDENTS } from "@/lib/config";
 import { AuthStates } from "@/lib/types";
+import { fetcher } from "@/lib/utils";
+import { validateAuth } from "./utils";
 
 export default function LoginForm() {
   const [runDVD, SETrunDVD] = useState(false);
@@ -29,7 +30,13 @@ export default function LoginForm() {
     const email = formData.get("email")?.toString() || "";
     const pass = formData.get("password")?.toString() || "";
 
-    const res = await validateAuth(email, pass);
+    // let res: AuthStates = await fetcher("/api/login", {
+    //   method: "POST",
+    //   credentials: "include",
+    //   body: JSON.stringify({ email, pass })
+    // });
+
+    let res = await validateAuth(email, pass);
 
     console.log(AuthStates.UNAUTHORIZED);
     switch (res) {
@@ -50,7 +57,7 @@ export default function LoginForm() {
         break;
       case AuthStates.ERROR:
         // console.log("ERROR");
-        toast.error("Backend Is Down :(", { duration: 20000 });
+        toast.error("An error occured :(", { duration: 20000 });
         break;
       default:
         console.log("NO USER");

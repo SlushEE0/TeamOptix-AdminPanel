@@ -1,13 +1,6 @@
 "use client";
 
-import React, {
-  memo,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState
-} from "react";
+import React, { memo, use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import {
@@ -23,48 +16,64 @@ import {
 } from "@nextui-org/react";
 import { NextUIProvider } from "@nextui-org/system";
 import toast from "react-hot-toast";
+import useSWRInfinite from "swr/infinite";
 
 import useOnScreen from "@/lib/useOnScreen";
-import { unixToFancyDate } from "@/lib/utils";
-import { getPage } from "./pagination";
-import { UsersContext } from "./DataWrapper";
+import { toLogged, unixToFancyDate } from "@/lib/utils";
+import { getDocumentCount, getPage, getPages } from "./pagination";
 import { getUserDataByID } from "../user/[userid]/utils";
 
-function UsersTable() {
-  const [items, SETitems] = useContext(UsersContext);
-  const [sortedItems, SETsortedItems] = useState(items);
+type t_items = Exclude<Awaited<ReturnType<typeof getPage>>, null>;
 
-  const [isLoading, SETisLoading] = useState(true);
+const getKey = function (pageIndex: number, previousPageData: t_items) {
+  return `http://localhost:3000/api/users?skip=${pageIndex * 20}`;
+};
+
+const dataFetcher = async function (url: string) {
+  const { searchParams } = new URL(url);
+  const skip = parseInt(searchParams.get("skip") || "0");
+
+  return getPage(skip).then((ret) => ret || []);
+};
+
+function UsersTable() {
+  const [allPages, SETallPages] = useState(4);
+  const [allUsers, SETallUsers] = useState<null | number>(null);
+
+  const [sortedItems, SETsortedItems] = useState<t_items>([]);
   const [sortDescriptor, SETsortDescriptor] = useState<SortDescriptor>({});
 
   const loaderRef = useRef<HTMLDivElement>(null);
-  const loaderVisible = useOnScreen(loaderRef);
+  // const loaderVisible = useOnScreen(loaderRef);
 
   const router = useRouter();
 
-  const load = async function () {
-    if (!isLoading) return;
+  const { data, isLoading, setSize, size, isValidating } =
+    useSWRInfinite<t_items>(getKey, (url) => dataFetcher(url), {
+      initialSize: 0,
+    });
 
-    const newItems = await getPage();
-
-    if (!newItems) return SETisLoading(false);
-
-    SETitems((currItems) => [...currItems, ...newItems]);
-    SETsortedItems((currItems) => [...currItems, ...newItems]);
-  };
+  let items = data?.flat() || [];
 
   useEffect(() => {
-    if (isLoading) load();
+    getPages().then(SETallPages);
+    getDocumentCount().then(SETallUsers);
+  }, []);
 
+  useEffect(() => {
     sorter(sortDescriptor);
-  }, [items, isLoading, load]);
 
-  console.log(isLoading);
+    if (size >= allPages) return;
 
-  const sorter = function (descriptor: SortDescriptor) {
+    setSize((prev) => (prev < allPages ? prev + 1 : prev));
+  }, [data]);
+
+  const sorter = function (descriptor: SortDescriptor, data = items) {
+    let newSortedItems = data;
+
     switch (descriptor.column) {
       case "hours":
-        SETsortedItems((data) => {
+        newSortedItems = (() => {
           if (descriptor.direction === "ascending") {
             return data.toSorted((a, b) => a.seconds - b.seconds);
           } else if (descriptor.direction === "descending") {
@@ -72,11 +81,11 @@ function UsersTable() {
           }
 
           return data;
-        });
-        return SETsortDescriptor(descriptor);
+        })();
+        break;
 
       case "meetings":
-        SETsortedItems((data) => {
+        newSortedItems = (() => {
           if (descriptor.direction === "ascending") {
             return data.toSorted((a, b) => a.meetingCount - b.meetingCount);
           } else if (descriptor.direction === "descending") {
@@ -84,32 +93,29 @@ function UsersTable() {
           }
 
           return data;
-        });
-        return SETsortDescriptor(descriptor);
+        })();
+        break;
 
       case "user":
-        SETsortedItems((data) => {
+        newSortedItems = (() => {
           if (descriptor.direction === "ascending") {
             return data.toSorted((a, b) => {
               if (!a.displayName || !b.displayName) return -1;
-              console.log(a, b);
-
               return a.displayName.localeCompare(b.displayName);
             });
           } else if (descriptor.direction === "descending") {
             return data.toSorted((a, b) => {
               if (!a.displayName || !b.displayName) return -1;
-              console.log(a, b);
               return b.displayName.localeCompare(a.displayName);
             });
           }
 
           return data;
-        });
-        return SETsortDescriptor(descriptor);
+        })();
+        break;
 
       case "lastCheckIn":
-        SETsortedItems((data) => {
+        newSortedItems = (() => {
           if (descriptor.direction === "ascending") {
             return data.toSorted((a, b) => a.lastCheckIn - b.lastCheckIn);
           } else if (descriptor.direction === "descending") {
@@ -117,12 +123,15 @@ function UsersTable() {
           }
 
           return data;
-        });
-        return SETsortDescriptor(descriptor);
+        })();
+        break;
 
       default:
-        return;
+        break;
     }
+
+    SETsortedItems(newSortedItems);
+    SETsortDescriptor(descriptor);
   };
 
   const onNameClicked = async function (e: React.Key) {
@@ -145,7 +154,8 @@ function UsersTable() {
         onRowAction={onNameClicked}>
         <TableHeader>
           <TableColumn key={"user"} allowsSorting>
-            User
+            Users ({allUsers ? allUsers : " Loading ... "}, Loaded: {items.length}
+            )
           </TableColumn>
           <TableColumn key={"hours"} allowsSorting>
             Build Season Hours
@@ -157,7 +167,7 @@ function UsersTable() {
             Last Check In
           </TableColumn>
         </TableHeader>
-        <TableBody {...{ isLoading, items: sortedItems }}>
+        <TableBody {...{ isLoading, items: data?.flat() || [] }}>
           {(user) => {
             return (
               <TableRow
@@ -188,7 +198,7 @@ function UsersTable() {
           }}
         </TableBody>
       </Table>
-      {isLoading && (
+      {isValidating && (
         <div className="flex w-full justify-center border-none">
           <Spinner size="lg" ref={loaderRef} color="success" />
         </div>

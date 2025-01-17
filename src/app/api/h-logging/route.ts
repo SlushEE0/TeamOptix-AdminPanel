@@ -1,14 +1,36 @@
-"use server";
-
-import { SignJWT, jwtVerify } from "jose";
+import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { SignJWT, jwtVerify } from "jose";
 
 import models from "@/db/mongo";
 import { CodeValidationStates } from "@/lib/types";
+import { LOGGING_COOKIE_MAXAGE } from "@/lib/config";
+
+export const dynamic = "force-dynamic";
 
 const jwtSecret = new TextEncoder().encode("Toolkit-AdminPanel");
 
-export async function startLoggingSession(startCode: string, userId: string) {
+export async function POST(req: Request) {
+  const { code, userId } = await req.json();
+
+  const { state, minsLogged } = await userAction(code, userId);
+  const cookie = (await cookies()).get("loggingSession")?.value || "";
+
+  const res = NextResponse.json({ state, minsLogged });
+  res.cookies.set("loggingSession", cookie, {
+    maxAge: LOGGING_COOKIE_MAXAGE
+  });
+
+  return res;
+}
+
+export async function GET() {
+  const session = await getLoggingSession();
+
+  return Response.json(session);
+}
+
+async function startLoggingSession(startCode: string, userId: string) {
   const timeMS = Date.now();
   const jwt = await new SignJWT({ startCode, timeMS, userId })
     .setProtectedHeader({ alg: "HS256" })
@@ -21,7 +43,7 @@ export async function startLoggingSession(startCode: string, userId: string) {
   console.log("[H-Logging] Session started for user", userId);
 }
 
-export async function getLoggingSession() {
+async function getLoggingSession() {
   const jwt = (await cookies()).get("loggingSession")?.value || "";
 
   let session;
@@ -36,7 +58,7 @@ export async function getLoggingSession() {
   return session;
 }
 
-export async function endLoggingSession() {
+async function endLoggingSession() {
   const jwt = (await cookies()).get("loggingSession")?.value || "";
 
   let session;
@@ -79,12 +101,13 @@ export async function endLoggingSession() {
   return duration;
 }
 
-export async function validateCode(code: string, userId: string) {
+async function userAction(code: string, userId: string) {
   const codeDoc = await models.Code.findOne({ value: code }).lean().exec();
 
   const ret = {
     state: CodeValidationStates.INVALID,
-    minsLogged: 0
+    minsLogged: 0,
+    cookie: ""
   };
 
   if (!codeDoc) {

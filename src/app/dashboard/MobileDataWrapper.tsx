@@ -27,7 +27,7 @@ export const CodesContext = createContext<
 //   [UsersTableData, Dispatch<SetStateAction<UsersTableData>>]
 // >(null as any);
 
-export default function DataWrapper() {
+export default function MobileDataWrapper() {
   // const [usersTableData, SETusersTableData] = useState<UsersTableData>([]);
   const [codesTableData, SETcodesTableData] = useState<CodesTableData>([]);
 
@@ -45,9 +45,9 @@ export default function DataWrapper() {
         <CodesContext.Provider value={[codesTableData, SETcodesTableData]}>
           <section className="rounded-sm h-[calc(100%-16rem-1rem)] w-full grid grid-cols-3 grid-rows-1 gap-3 overflow-x-hidden">
             {/* <UsersContext.Provider value={[usersTableData, SETusersTableData]}> */}
-              <div className="lg:col-span-2 w-full max-h-full border overflow-scroll col-span-3 rounded-sm p-4 bg-background">
-                <UsersTable />
-              </div>
+            <div className="lg:col-span-2 w-full max-h-full border overflow-scroll col-span-3 rounded-sm p-4 bg-background">
+              <UsersTable />
+            </div>
             {/* </UsersContext.Provider> */}
             <div className="lg:col-span-1 lg:w-full h-full w-96 border rounded-sm p-4 bg-background">
               <CodesTable />

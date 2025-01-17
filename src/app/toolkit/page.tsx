@@ -16,9 +16,8 @@ import {
 } from "@/components/ui/card";
 
 import { CodeValidationStates, t_UserData } from "@/lib/types";
-import { unixToFancyDate } from "@/lib/utils";
-import { getLoggingSession, getUserData, validateCode } from "./utils";
-import { Code } from "mongodb";
+import { fetcher, unixToFancyDate } from "@/lib/utils";
+import { getLoggingSession, validateCode } from "./utils";
 
 const lexend = Lexend({
   weight: "300",
@@ -39,7 +38,7 @@ export default function Toolkit() {
   useEffect(() => {
     toast.dismiss();
     (async () => {
-      const data = await getUserData();
+      const data = await fetcher("/api/user");
 
       if (data === "ERROR") {
         toast.error("Error fetching user data", { duration: 999999 });
@@ -74,7 +73,8 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
   };
 
   const updateData = async function () {
-    const data = await getUserData();
+    //use the api with fetcher function
+    const data = await fetcher("/api/user");
 
     if (data === "ERROR") {
       toast.error("Error fetching user data", { duration: 999999 });
@@ -94,7 +94,7 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
       return;
     }
 
-    const [state, minutesLogged] = await validateCode(code, userData._id);
+    const { state, minsLogged } = await validateCode(code, userData._id);
 
     switch (state) {
       case CodeValidationStates.SESSION_START:
@@ -105,9 +105,7 @@ function LoadedContent({ initalData }: { initalData: t_UserData }) {
         toast.error("Invalid code");
         break;
       case CodeValidationStates.SESSION_END:
-        toast.success(
-          `Session ended. Logged ${minutesLogged.toFixed(2)} minutes`
-        );
+        toast.success(`Session ended. Logged ${minsLogged.toFixed(2)} minutes`);
         updateIsLogging();
         updateData();
         break;

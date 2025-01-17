@@ -9,11 +9,12 @@ import { unixToFancyDate } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
-export default async function UserPage({
-  params
-}: {
-  params: { userid: string };
-}) {
+export default async function UserPage(
+  props: {
+    params: Promise<{ userid: string }>;
+  }
+) {
+  const params = await props.params;
   const data = await getUserDataByID(params.userid);
 
   if (!data) {

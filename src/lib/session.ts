@@ -34,22 +34,26 @@ async function decrypt(jwt: string) {
 }
 
 export async function getSession() {
-  return await decrypt(cookies().get("session")?.value || "");
+  return await decrypt((await cookies()).get("session")?.value || "");
+}
+
+export async function createSessionCookie(email: string, isAdmin = false) {
+  return encrypt({
+    email,
+    isAdmin
+  });
 }
 
 export async function createSession(email: string, isAdmin = false) {
-  encrypt({
-    email,
-    isAdmin
-  }).then((jwt) => {
-    cookies().set("session", jwt, {
-      maxAge: LOGIN_COOKIE_MAXAGE
-    });
+  const jwt = await createSessionCookie(email, isAdmin);
+
+  (await cookies()).set("session", jwt, {
+    maxAge: LOGIN_COOKIE_MAXAGE
   });
 }
 
 export async function deleteSession() {
-  return cookies().delete("session");
+  return (await cookies()).delete("session");
 }
 
 export async function validateSession() {
