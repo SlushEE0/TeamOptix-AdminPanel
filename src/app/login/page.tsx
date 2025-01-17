@@ -15,6 +15,7 @@ import PasswordBlock from "../../components/PasswordBlock";
 import { PRESIDENTS } from "@/lib/config";
 import { AuthStates } from "@/lib/types";
 import { fetcher } from "@/lib/utils";
+import { validateAuth } from "./utils";
 
 export default function LoginForm() {
   const [runDVD, SETrunDVD] = useState(false);
@@ -29,10 +30,13 @@ export default function LoginForm() {
     const email = formData.get("email")?.toString() || "";
     const pass = formData.get("password")?.toString() || "";
 
-    let res: AuthStates = await fetcher("/api/login", {
-      method: "POST",
-      body: JSON.stringify({ email, pass })
-    });
+    // let res: AuthStates = await fetcher("/api/login", {
+    //   method: "POST",
+    //   credentials: "include",
+    //   body: JSON.stringify({ email, pass })
+    // });
+
+    let res = await validateAuth(email, pass);
 
     console.log(AuthStates.UNAUTHORIZED);
     switch (res) {

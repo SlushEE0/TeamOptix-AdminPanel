@@ -1,3 +1,5 @@
+"use server";
+
 import { FirebaseError } from "firebase/app";
 import {
   browserLocalPersistence,
@@ -38,25 +40,27 @@ export async function signIn_emailPass(
   } catch (e) {
     if ((e as FirebaseError).code === "auth/wrong-password") {
       console.log("Unknown User");
-      return AuthStates.UNKNOWN;
+      return {
+        isMember: false,
+        isAdmin: false
+      };
     }
 
-    return AuthStates.ERROR;
+    return {
+      isMember: false,
+      isAdmin: false
+    };
   }
 
   const userAdminified = await firebaseAdminApp.auth().getUser(user.uid);
+
   const isAdmin = userAdminified.customClaims?.admin;
+  const isMember = userAdminified.customClaims?.member;
 
-  createSession(email, isAdmin);
-  if (isAdmin) {
-    console.log(`UserAuthorized: ${email}`);
-    return AuthStates.ADMIN_AUTHORIZED;
-  } else if (userAdminified.customClaims?.member) {
-    console.log(`UserAuthorized: ${email}`);
-    return AuthStates.USER_AUTHORIZED;
-  }
-
-  return AuthStates.UNAUTHORIZED;
+  return {
+    isMember,
+    isAdmin
+  };
 }
 
 // export async function signIn_google() {
@@ -106,20 +110,20 @@ export async function fb_createUser(
   return [AccountCreationStates.SUCCESS, userRecord.uid];
 }
 
-export async function loginWithPersistedData() {
-  const { email, pass } = (await getSession()) as any;
+// export async function loginWithPersistedData() {
+//   const { email, pass } = (await getSession()) as any;
 
-  console.log(email, pass);
+//   console.log(email, pass);
 
-  const loginState = await signIn_emailPass(email, pass, false);
+//   const loginState = await signIn_emailPass(email, pass, false);
 
-  switch (loginState) {
-    case AuthStates.ADMIN_AUTHORIZED:
-      break;
-    default:
-      deleteSession();
-  }
-}
+//   switch (loginState) {
+//     case AuthStates.ADMIN_AUTHORIZED:
+//       break;
+//     default:
+//       deleteSession();
+//   }
+// }
 
 export async function getUserDataWithUid(
   uid: string

@@ -71,7 +71,7 @@ export function getPrettyDateString(
 
 export function fetcher<T = any>(
   url: URL | string,
-  options?: any,
+  options?: RequestInit,
   errorHandler?: (e: any) => any
 ): Promise<T> {
   errorHandler

@@ -37,11 +37,15 @@ export async function getSession() {
   return await decrypt((await cookies()).get("session")?.value || "");
 }
 
-export async function createSession(email: string, isAdmin = false) {
-  const jwt = await encrypt({
+export async function createSessionCookie(email: string, isAdmin = false) {
+  return encrypt({
     email,
     isAdmin
   });
+}
+
+export async function createSession(email: string, isAdmin = false) {
+  const jwt = await createSessionCookie(email, isAdmin);
 
   (await cookies()).set("session", jwt, {
     maxAge: LOGIN_COOKIE_MAXAGE
