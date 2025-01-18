@@ -4,6 +4,8 @@ import { getSession } from "@/lib/session";
 import { t_UserData } from "@/lib/types";
 import { UserRecord } from "firebase-admin/lib/auth/user-record";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const userData = await getUserData();
 

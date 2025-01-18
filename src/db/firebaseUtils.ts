@@ -1,4 +1,4 @@
-"use server";
+'use server'
 
 import { FirebaseError } from "firebase/app";
 import {
@@ -23,8 +23,9 @@ import {
   firebaseAdminApp,
   firebaseAuth,
   provider_google
-} from "./firebaseInit";
+} from "./firebaseInit";  
 import { UserRecord } from "firebase-admin/lib/auth/user-record";
+import { toLogged } from "@/lib/utils";
 
 export async function signIn_emailPass(
   email: string,
@@ -40,16 +41,11 @@ export async function signIn_emailPass(
   } catch (e) {
     if ((e as FirebaseError).code === "auth/wrong-password") {
       console.log("Unknown User");
-      return {
-        isMember: false,
-        isAdmin: false
-      };
+      return AuthStates.WRONG_PASSWORD;
     }
 
-    return {
-      isMember: false,
-      isAdmin: false
-    };
+    console.log(e);
+    return AuthStates.ERROR;
   }
 
   const userAdminified = await firebaseAdminApp.auth().getUser(user.uid);
@@ -57,10 +53,10 @@ export async function signIn_emailPass(
   const isAdmin = userAdminified.customClaims?.admin;
   const isMember = userAdminified.customClaims?.member;
 
-  return {
-    isMember,
-    isAdmin
-  };
+  if (isAdmin) return AuthStates.ADMIN_AUTHORIZED;
+  if (isMember) return AuthStates.USER_AUTHORIZED;
+
+  return AuthStates.UNAUTHORIZED;
 }
 
 // export async function signIn_google() {

@@ -16,6 +16,7 @@ import { PRESIDENTS } from "@/lib/config";
 import { AuthStates } from "@/lib/types";
 import { fetcher } from "@/lib/utils";
 import { validateAuth } from "./utils";
+import { signIn_emailPass } from "@/db/firebaseUtils";
 
 export default function LoginForm() {
   const [runDVD, SETrunDVD] = useState(false);
@@ -30,13 +31,11 @@ export default function LoginForm() {
     const email = formData.get("email")?.toString() || "";
     const pass = formData.get("password")?.toString() || "";
 
-    // let res: AuthStates = await fetcher("/api/login", {
-    //   method: "POST",
-    //   credentials: "include",
-    //   body: JSON.stringify({ email, pass })
-    // });
-
-    let res = await validateAuth(email, pass);
+    let res: AuthStates = await fetcher("/api/login", {
+      method: "POST",
+      credentials: "include",
+      body: JSON.stringify({ email, pass })
+    });
 
     console.log(AuthStates.UNAUTHORIZED);
     switch (res) {
@@ -104,9 +103,7 @@ export default function LoginForm() {
               </div>
               <PasswordBlock name="password" required />
             </div>
-            <Button type="submit" className="w-full">
-              Login
-            </Button>
+            <Button className="w-full">Login</Button>
             <Button
               variant="outline"
               type="button"

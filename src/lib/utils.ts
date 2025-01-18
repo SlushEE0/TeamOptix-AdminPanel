@@ -92,10 +92,10 @@ export function fetcher<T = any>(
 
 export function toLogged<T>(
   log: T,
-  message = "[LOGGER]",
-  append = "[DEBUG]"
+  prefix = "[LOGGER]",
+  suffix = "[DEBUG]"
 ): T {
-  console.log(message, log, append);
+  console.log(prefix, log, suffix);
 
   return log;
 }

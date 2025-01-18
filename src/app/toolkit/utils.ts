@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 
 import models from "@/db/mongo";
 import { CodeValidationStates } from "@/lib/types";
+import { toLogged } from "@/lib/utils";
 
 const jwtSecret = new TextEncoder().encode("Toolkit-AdminPanel");
 
@@ -107,6 +108,9 @@ export async function validateCode(code: string, userId: string) {
 
   if (codeDoc.key === "checkInPassword") {
     const session = await getLoggingSession();
+
+    toLogged("Attempted CheckIn", "[TOOLKIT]", `-${userId}`);
+
     if (session !== -2) {
       ret.state = CodeValidationStates.ALREADY_STARTED;
       return ret;
@@ -114,11 +118,14 @@ export async function validateCode(code: string, userId: string) {
 
     startLoggingSession(code, userId);
     ret.state = CodeValidationStates.SESSION_START;
+    toLogged("CheckedIn", "[TOOLKIT]", `-${userId}`);
     return ret;
   }
 
   if (codeDoc.key === "checkOutPassword") {
     const res = await endLoggingSession();
+
+    toLogged("Attempted CheckOut", "[TOOLKIT]", `-${userId}`);
 
     if (res === -1) {
       ret.state = CodeValidationStates.INVALID;
@@ -131,6 +138,7 @@ export async function validateCode(code: string, userId: string) {
 
     ret.minsLogged = res / 1000 / 60;
     ret.state = CodeValidationStates.SESSION_END;
+    toLogged("CheckedOut", "[TOOLKIT]", `-${userId}`);
     return ret;
   }
 
