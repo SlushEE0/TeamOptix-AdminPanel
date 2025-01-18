@@ -41,7 +41,15 @@ export async function POST(req: Request) {
         }
       );
     default:
-      return AuthStates.ERROR;
+      return new Response(
+        JSON.stringify({
+          message: "ERROR",
+          state: authState
+        }),
+        {
+          status: 500
+        }
+      );
   }
 
   const jwt = (await cookies()).get("session")?.value || "";
