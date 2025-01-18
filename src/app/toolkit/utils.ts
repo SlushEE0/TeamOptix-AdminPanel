@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import models from "@/db/mongo";
 import { CodeValidationStates } from "@/lib/types";
 import { toLogged } from "@/lib/utils";
+import { LOGGING_COOKIE_MAXAGE } from "@/lib/config";
 
 const jwtSecret = new TextEncoder().encode("Toolkit-AdminPanel");
 
@@ -17,7 +18,10 @@ export async function startLoggingSession(startCode: string, userId: string) {
     .setExpirationTime("10 hours from now")
     .sign(jwtSecret);
 
-  (await cookies()).set("loggingSession", jwt);
+  (await cookies()).set("loggingSession", jwt, {
+    maxAge: LOGGING_COOKIE_MAXAGE,
+    sameSite: false
+  });
 
   console.log("[H-Logging] Session started for user", userId);
 }

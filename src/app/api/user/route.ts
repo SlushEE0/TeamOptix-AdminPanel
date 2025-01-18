@@ -1,6 +1,6 @@
 import { firebaseAdminApp } from "@/db/firebaseInit";
 import models, { mongo_createUser } from "@/db/mongo";
-import { getSession } from "@/lib/session";
+import { getSessionCookie } from "@/lib/session";
 import { t_UserData } from "@/lib/types";
 import { UserRecord } from "firebase-admin/lib/auth/user-record";
 
@@ -19,7 +19,7 @@ export async function GET() {
 }
 
 async function getUserData() {
-  const jwt = await getSession();
+  const jwt = await getSessionCookie();
   const email = jwt?.payload.email as string;
 
   let fbData;

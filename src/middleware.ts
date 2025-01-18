@@ -20,7 +20,7 @@ export async function middleware(req: NextRequest) {
   const [level, payload] = sessionData;
 
   if (level === SessionStates.ADMIN) {
-    if (reqUrl.pathname == `/`) return redirect(reqUrl, `/dashboard`);
+    if (reqUrl.pathname == `/`) return redirect(reqUrl, `/toolkit`);
 
     return;
   }

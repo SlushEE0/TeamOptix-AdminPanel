@@ -33,7 +33,7 @@ async function decrypt(jwt: string) {
   }
 }
 
-export async function getSession() {
+export async function getSessionCookie() {
   return await decrypt((await cookies()).get("session")?.value || "");
 }
 
@@ -48,7 +48,8 @@ export async function createSession(email: string, isAdmin = false) {
   const jwt = await createSessionCookie(email, isAdmin);
 
   (await cookies()).set("session", jwt, {
-    maxAge: LOGIN_COOKIE_MAXAGE
+    maxAge: LOGIN_COOKIE_MAXAGE,
+    sameSite: "none"
   });
 }
 
@@ -57,7 +58,7 @@ export async function deleteSession() {
 }
 
 export async function validateSession() {
-  const session = await getSession();
+  const session = await getSessionCookie();
 
   if (!session) return false;
 
