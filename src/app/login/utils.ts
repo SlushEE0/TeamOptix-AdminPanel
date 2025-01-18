@@ -9,24 +9,25 @@ import { AuthStates } from "@/lib/types";
 import { LOGIN_COOKIE_MAXAGE } from "@/lib/config";
 
 export async function validateAuth(email: string, pass: string) {
-  const { isMember, isAdmin } = await signIn_emailPass(email, pass);
+  const state: AuthStates = await signIn_emailPass(email, pass);
+  // const state = authState;
 
-  if (!isMember && !isAdmin) return AuthStates.UNAUTHORIZED;
+  let jwt = "";
 
-  try {
-    console.log(`UserAuthorized: ${email}`);
-
-    const jwt = await createSessionCookie(email, isAdmin);
-    (await cookies()).set("session", jwt, { maxAge: LOGIN_COOKIE_MAXAGE });
-
-    if (isAdmin) {
+  switch (state) {
+    case AuthStates.ADMIN_AUTHORIZED:
+      jwt = await createSessionCookie(email, true);
+      (await cookies()).set("session", jwt, { maxAge: LOGIN_COOKIE_MAXAGE });
       return AuthStates.ADMIN_AUTHORIZED;
-    } else if (isMember) {
+    case AuthStates.USER_AUTHORIZED:
+      jwt = await createSessionCookie(email, false);
+      (await cookies()).set("session", jwt, { maxAge: LOGIN_COOKIE_MAXAGE });
       return AuthStates.USER_AUTHORIZED;
-    }
-  } catch {
-    return AuthStates.ERROR;
+    case AuthStates.WRONG_PASSWORD:
+      return AuthStates.WRONG_PASSWORD;
+    case AuthStates.UNAUTHORIZED:
+      return AuthStates.UNAUTHORIZED;
+    default:
+      return AuthStates.ERROR;
   }
-
-  return AuthStates.UNAUTHORIZED;
 }

@@ -2,6 +2,8 @@ import { signIn_emailPass } from "@/db/firebaseUtils";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   const { email, pass }: { email: string; pass: string } = await req.json();
 

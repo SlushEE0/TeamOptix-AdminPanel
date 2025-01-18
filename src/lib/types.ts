@@ -49,7 +49,7 @@ export enum AuthStates {
   UNAUTHORIZED,
   UNKNOWN,
   ERROR,
-  ECONNREFUSED
+  WRONG_PASSWORD
 }
 
 export enum AccountCreationStates {

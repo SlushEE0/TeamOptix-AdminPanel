@@ -5,6 +5,8 @@ import { firebaseAdminApp } from "@/db/firebaseInit";
 import { UserRecord } from "firebase-admin/lib/auth/user-record";
 import { With_id, t_MongoUserData, t_Role } from "@/lib/types";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const skip = parseInt(searchParams.get("skip") || "0");
