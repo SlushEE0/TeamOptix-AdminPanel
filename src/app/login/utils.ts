@@ -17,11 +17,11 @@ export async function validateAuth(email: string, pass: string) {
   switch (state) {
     case AuthStates.ADMIN_AUTHORIZED:
       jwt = await createSessionCookie(email, true);
-      (await cookies()).set("session", jwt, { maxAge: LOGIN_COOKIE_MAXAGE });
+      (await cookies()).set("session", jwt, { maxAge: LOGIN_COOKIE_MAXAGE, sameSite: false });
       return AuthStates.ADMIN_AUTHORIZED;
     case AuthStates.USER_AUTHORIZED:
       jwt = await createSessionCookie(email, false);
-      (await cookies()).set("session", jwt, { maxAge: LOGIN_COOKIE_MAXAGE });
+      (await cookies()).set("session", jwt, { maxAge: LOGIN_COOKIE_MAXAGE, sameSite: false });
       return AuthStates.USER_AUTHORIZED;
     case AuthStates.WRONG_PASSWORD:
       return AuthStates.WRONG_PASSWORD;

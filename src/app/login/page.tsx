@@ -31,14 +31,17 @@ export default function LoginForm() {
     const email = formData.get("email")?.toString() || "";
     const pass = formData.get("password")?.toString() || "";
 
-    let res: AuthStates = await fetcher("/api/login", {
-      method: "POST",
-      credentials: "include",
-      body: JSON.stringify({ email, pass })
-    });
+    let { message, state }: { message: string; state: AuthStates } =
+      await fetcher("/api/login", {
+        method: "POST",
+        body: JSON.stringify({ email, pass })
+      });
+
+    console.log(state);
+    console.log(message);
 
     console.log(AuthStates.UNAUTHORIZED);
-    switch (res) {
+    switch (state) {
       case AuthStates.ADMIN_AUTHORIZED:
         // console.log("AUTHORIZED");
         toast.success("ADMIN! Authorized 🙂");
@@ -54,13 +57,13 @@ export default function LoginForm() {
         // console.log("UNAUTHORIZED");
         toast.error("Unauthorized 😔");
         break;
+      case AuthStates.WRONG_PASSWORD:
+        toast.error("Incorrect email/password");
+        break;
       case AuthStates.ERROR:
+      default:
         // console.log("ERROR");
         toast.error("An error occured :(", { duration: 20000 });
-        break;
-      default:
-        console.log("NO USER");
-        toast.error("Incorrect email/password");
         break;
     }
 

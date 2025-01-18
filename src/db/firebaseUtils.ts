@@ -1,4 +1,4 @@
-'use server'
+"use server";
 
 import { FirebaseError } from "firebase/app";
 import {
@@ -9,7 +9,7 @@ import {
 } from "firebase/auth";
 
 import { BASE_FETCH_URL } from "../lib/config";
-import { createSession, deleteSession, getSession } from "@/lib/session";
+import { createSession, deleteSession, getSessionCookie } from "@/lib/session";
 import {
   AccountCreationStates,
   t_MongoUserData,
@@ -23,7 +23,7 @@ import {
   firebaseAdminApp,
   firebaseAuth,
   provider_google
-} from "./firebaseInit";  
+} from "./firebaseInit";
 import { UserRecord } from "firebase-admin/lib/auth/user-record";
 import { toLogged } from "@/lib/utils";
 
