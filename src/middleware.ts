@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { validateSession } from "./lib/session";
 import { SessionStates } from "./lib/types";
+import { toLogged } from "./lib/utils";
 
 const redirect = function (reqUrl: URL, pathname: string) {
   reqUrl.pathname = pathname;
+
+  if (reqUrl.pathname === pathname) return;
 
   return NextResponse.redirect(reqUrl);
 };
