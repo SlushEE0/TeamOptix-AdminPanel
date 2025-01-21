@@ -6,10 +6,12 @@ import { SessionStates } from "./types";
 import { LOGIN_COOKIE_MAXAGE } from "./config";
 
 const jwtSecret = new TextEncoder().encode("Toolkit-AdminPanel");
+const secretHash = new TextEncoder().encode("1/20/2025").toString();
 
 type JWTPayload = {
   email: string;
   isAdmin: boolean;
+  secretHash: string;
 };
 
 async function encrypt(payload: JWTPayload) {
@@ -40,7 +42,8 @@ export async function getSessionCookie() {
 export async function createSessionCookie(email: string, isAdmin = false) {
   return encrypt({
     email,
-    isAdmin
+    isAdmin,
+    secretHash
   });
 }
 
