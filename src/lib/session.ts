@@ -71,7 +71,11 @@ export async function validateSession() {
   if (!jwtExp) SessionStates.EXPIRED;
 
   if (Date.now() / 1000 > jwtExp) level = SessionStates.EXPIRED;
+  if (session.payload.secretHash !== secretHash) level = SessionStates.EXPIRED;
+
   if (session.payload.isAdmin) level = SessionStates.ADMIN;
+
+  if(level === SessionStates.EXPIRED) deleteSession();
 
   return [level, session.payload] as const;
 }
