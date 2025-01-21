@@ -5,9 +5,9 @@ import { SessionStates } from "./lib/types";
 import { toLogged } from "./lib/utils";
 
 const redirect = function (reqUrl: URL, pathname: string) {
-  reqUrl.pathname = pathname;
-
   if (reqUrl.pathname === pathname) return;
+
+  reqUrl.pathname = pathname;
 
   return NextResponse.redirect(reqUrl);
 };
