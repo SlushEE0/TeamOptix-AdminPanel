@@ -153,6 +153,10 @@ function UsersTable() {
   };
 
   const generateCSV = function () {
+    if (items.length === 0) {
+      return toast.error("Data isnt loaded ... please wait");
+    }
+
     let fileName = "data.csv";
 
     if (items.length !== userCount) {
