@@ -176,7 +176,7 @@ export default function CreateCode({
   return (
     <div {...{ className }}>
       <Dialog modal={false}>
-        <DialogTrigger className="w-full h-[calc(100%-3rem)]">
+        <DialogTrigger>
           {/* <div
             className={`bg-white w-full h-full text-lg  ${buttonVariants({
               variant: "default"

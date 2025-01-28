@@ -23,7 +23,14 @@ export async function getPage(skip: number, pageSize = 20) {
   >[] = [] as any;
 
   for (const doc of docs) {
-    const user = await firebaseAdminApp.auth().getUser(doc.uid);
+    let user: UserRecord;
+    
+    try {
+      user = await firebaseAdminApp.auth().getUser(doc.uid);
+    } catch (e) {
+      console.error("[UsersTable] Error getting user data for", doc.uid);
+      continue;
+    }
 
     const combinedData = await (async () => {
       if (user.email === "" && user.displayName === "") {
@@ -75,9 +82,4 @@ export async function isLoadingFinished(
 
 export async function resetLoaded(docsHad = 0) {
   docsHad = docsHad;
-}
-
-export async function getPages(pageSize = 20) {
-  const count = await getDocumentCount();
-  return Math.ceil(count / pageSize);
 }

@@ -14,13 +14,14 @@ import {
   Spinner,
   User
 } from "@nextui-org/react";
+import { Download, Plus } from "lucide-react";
 import { NextUIProvider } from "@nextui-org/system";
 import toast from "react-hot-toast";
 import useSWRInfinite from "swr/infinite";
 
 import useOnScreen from "@/lib/useOnScreen";
 import { toLogged, unixToFancyDate } from "@/lib/utils";
-import { getDocumentCount, getPage, getPages } from "./pagination";
+import { getDocumentCount, getPage } from "./pagination";
 import { getUserDataByID } from "../user/[userid]/utils";
 
 type t_items = Exclude<Awaited<ReturnType<typeof getPage>>, null>;
@@ -33,12 +34,14 @@ const dataFetcher = async function (url: string) {
   const { searchParams } = new URL(url);
   const skip = parseInt(searchParams.get("skip") || "0");
 
+  console.log(skip);
+
   return getPage(skip).then((ret) => ret || []);
 };
 
 function UsersTable() {
-  const [allPages, SETallPages] = useState(4);
-  const [allUsers, SETallUsers] = useState<null | number>(null);
+  const [pageCount, SETpageCount] = useState(4);
+  const [userCount, SETuserCount] = useState<null | number>(null);
 
   const [sortedItems, SETsortedItems] = useState<t_items>([]);
   const [sortDescriptor, SETsortDescriptor] = useState<SortDescriptor>({});
@@ -50,23 +53,29 @@ function UsersTable() {
 
   const { data, isLoading, setSize, size, isValidating } =
     useSWRInfinite<t_items>(getKey, (url) => dataFetcher(url), {
-      initialSize: 0,
+      initialSize: 0
     });
 
   let items = data?.flat() || [];
 
   useEffect(() => {
-    getPages().then(SETallPages);
-    getDocumentCount().then(SETallUsers);
+    getDocumentCount().then((res) => {
+      SETpageCount(Math.ceil(res / 20));
+      SETuserCount(res);
+    });
   }, []);
 
   useEffect(() => {
     sorter(sortDescriptor);
 
-    if (size >= allPages) return;
+    if (size >= pageCount) return;
 
-    setSize((prev) => (prev < allPages ? prev + 1 : prev));
+    setSize((prev) => (prev < pageCount ? prev + 1 : prev));
   }, [data]);
+
+  if (items[0]) {
+    console.log(items[0].displayName, items[0].seconds);
+  }
 
   const sorter = function (descriptor: SortDescriptor, data = items) {
     let newSortedItems = data;
@@ -143,8 +152,31 @@ function UsersTable() {
     router.push(("/user/" + e) as string);
   };
 
+  const generateCSV = function () {
+    toast("All data isn't loaded ... please wait", {
+      icon: "⚠️"
+    });
+    const loader = toast.loading("Generating CSV");
+
+    const headers = Object.keys(items[0]);
+    const rows = items.map((row) => Object.values(row));
+    const csvData = [headers, ...rows].map((e) => e.join(",")).join("\n");
+
+    const blob = new Blob([csvData], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.setAttribute("hidden", "");
+    a.setAttribute("href", url);
+    a.setAttribute("download", "data.csv");
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    setTimeout(() => toast.dismiss(loader), 1000);
+  };
+
   return (
-    <NextUIProvider>
+    <div className="relative h-full">
       <Table
         aria-label="Users Table"
         removeWrapper
@@ -154,8 +186,8 @@ function UsersTable() {
         onRowAction={onNameClicked}>
         <TableHeader>
           <TableColumn key={"user"} allowsSorting>
-            Users ({allUsers ? allUsers : " Loading ... "}, Loaded: {items.length}
-            )
+            Users ({userCount ? userCount : " Loading ... "}, Loaded:{" "}
+            {items.length})
           </TableColumn>
           <TableColumn key={"hours"} allowsSorting>
             Build Season Hours
@@ -184,9 +216,7 @@ function UsersTable() {
                     name={user.displayName}
                   />
                 </TableCell>
-                <TableCell>
-                  {(user.seconds / 1000 / 60 / 60).toFixed(1)}
-                </TableCell>
+                <TableCell>{(user.seconds / 60 / 60).toFixed(1)}</TableCell>
                 <TableCell>{user.meetingCount}</TableCell>
                 <TableCell>
                   {user.lastCheckIn
@@ -203,7 +233,13 @@ function UsersTable() {
           <Spinner size="lg" ref={loaderRef} color="success" />
         </div>
       )}
-    </NextUIProvider>
+      <div className="sticky bottom-0 flex justify-end items-end size-full">
+        <Download
+          className="hover:opacity-70 transition-all"
+          onClick={generateCSV}
+        />
+      </div>
+    </div>
   );
 }
 

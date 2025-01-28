@@ -131,9 +131,11 @@ function CodesTable() {
           }}
         </TableBody>
       </Table>
-      <CreateCode className="absolute bottom-0 right-0">
-        <Plus className="hover:opacity-80 hover:bg-border rounded-full transition-all" />
-      </CreateCode>
+      <div className="absolute bottom-[-0.5rem] right-0">
+        <CreateCode >
+          <Plus className="hover:opacity-70 transition-all m-0 p-0"/>
+        </CreateCode>
+      </div>
     </div>
   );
 }
