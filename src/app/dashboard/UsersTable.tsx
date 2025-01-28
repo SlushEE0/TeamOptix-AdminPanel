@@ -153,9 +153,16 @@ function UsersTable() {
   };
 
   const generateCSV = function () {
-    toast("All data isn't loaded ... please wait", {
-      icon: "⚠️"
-    });
+    let fileName = "data.csv";
+
+    if (items.length !== userCount) {
+      toast("All data isn't loaded ... please wait", {
+        icon: "⚠️"
+      });
+
+      fileName = `${items.length}user-data.csv`;
+    }
+
     const loader = toast.loading("Generating CSV");
 
     const headers = Object.keys(items[0]);
@@ -167,7 +174,7 @@ function UsersTable() {
     const a = document.createElement("a");
     a.setAttribute("hidden", "");
     a.setAttribute("href", url);
-    a.setAttribute("download", "data.csv");
+    a.setAttribute("download", fileName);
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
