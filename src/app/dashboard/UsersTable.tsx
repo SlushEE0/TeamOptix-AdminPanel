@@ -1,6 +1,14 @@
 "use client";
 
-import React, { memo, use, useEffect, useRef, useState } from "react";
+import React, {
+  Key,
+  memo,
+  use,
+  useCallback,
+  useEffect,
+  useRef,
+  useState
+} from "react";
 import { useRouter } from "next/navigation";
 
 import {
@@ -12,9 +20,10 @@ import {
   TableCell,
   SortDescriptor,
   Spinner,
-  User
+  User,
+  Tooltip
 } from "@nextui-org/react";
-import { Download, Plus } from "lucide-react";
+import { Download, Eye, Pencil, Plus, Trash2 } from "lucide-react";
 import { NextUIProvider } from "@nextui-org/system";
 import toast from "react-hot-toast";
 import useSWRInfinite from "swr/infinite";
@@ -23,6 +32,7 @@ import useOnScreen from "@/lib/useOnScreen";
 import { toLogged, unixToFancyDate } from "@/lib/utils";
 import { getDocumentCount, getPage } from "./pagination";
 import { getUserDataByID } from "../user/[userid]/utils";
+import { ArrayElement } from "mongodb";
 
 type t_items = Exclude<Awaited<ReturnType<typeof getPage>>, null>;
 
@@ -40,7 +50,7 @@ const dataFetcher = async function (url: string) {
 };
 
 function UsersTable() {
-  const [pageCount, SETpageCount] = useState(4);
+  const [pageCount, SETpageCount] = useState(1);
   const [userCount, SETuserCount] = useState<null | number>(null);
 
   const [sortedItems, SETsortedItems] = useState<t_items>([]);
@@ -53,16 +63,17 @@ function UsersTable() {
 
   const { data, isLoading, setSize, size, isValidating } =
     useSWRInfinite<t_items>(getKey, (url) => dataFetcher(url), {
-      initialSize: 0
+      initialSize: 0,
+      revalidateFirstPage: false
     });
 
   let items = data?.flat() || [];
 
   useEffect(() => {
-    getDocumentCount().then((res) => {
-      SETpageCount(Math.ceil(res / 20));
-      SETuserCount(res);
-    });
+    // getDocumentCount().then((res) => {
+    //   SETpageCount(Math.ceil(res / 20));
+    //   SETuserCount(res);
+    // });
   }, []);
 
   useEffect(() => {
@@ -72,10 +83,6 @@ function UsersTable() {
 
     setSize((prev) => (prev < pageCount ? prev + 1 : prev));
   }, [data]);
-
-  if (items[0]) {
-    console.log(items[0].displayName, items[0].seconds);
-  }
 
   const sorter = function (descriptor: SortDescriptor, data = items) {
     let newSortedItems = data;
@@ -186,57 +193,82 @@ function UsersTable() {
     setTimeout(() => toast.dismiss(loader), 1000);
   };
 
+  const renderCell = useCallback((user: ArrayElement<t_items>) => {
+    console.log(user.photoURL);
+
+    return (
+      <TableRow key={user._id}>
+        <TableCell className="w-min">
+          <User
+            avatarProps={{
+              radius: "lg",
+              src: user.photoURL,
+              size: "md"
+            }}
+            description={user.email}
+            name={user.displayName}
+          />
+        </TableCell>
+        <TableCell className="flex flex-col">
+          <strong className="text-bold text-sm capitalize">
+            Hours: {user.seconds && (user.seconds / 60 / 60).toFixed(1)}
+          </strong>
+          <p className="text-bold text-sm capitalize text-default-400">
+            {user.meetingCount || 0} Meetings
+          </p>
+        </TableCell>
+        <TableCell>
+          <p className="capitalize text-left">{user.role}</p>
+        </TableCell>
+        <TableCell align="center">
+          <div className="relative flex items-center justify-center gap-3">
+            <Tooltip content="Details">
+              <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                <Eye />
+              </span>
+            </Tooltip>
+            <Tooltip content="Edit user">
+              <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                <Pencil />
+              </span>
+            </Tooltip>
+            <Tooltip color="danger" content="Delete user">
+              <span className="text-lg text-danger cursor-pointer active:opacity-50">
+                <Trash2 />
+              </span>
+            </Tooltip>
+          </div>
+        </TableCell>
+      </TableRow>
+    );
+  }, []);
+
   return (
     <div className="relative h-full">
       <Table
         aria-label="Users Table"
         removeWrapper
-        isHeaderSticky
+        
         sortDescriptor={sortDescriptor}
         onSortChange={sorter}
         onRowAction={onNameClicked}>
         <TableHeader>
           <TableColumn key={"user"} allowsSorting>
-            Users ({userCount ? userCount : " Loading ... "}, Loaded:{" "}
-            {items.length})
+            {`Users (${userCount || " Loading ... "}, Loaded:
+            ${items.length})`}
           </TableColumn>
           <TableColumn key={"hours"} allowsSorting>
             Build Season Hours
           </TableColumn>
-          <TableColumn key={"meetings"} allowsSorting>
-            Meeting Count
+          <TableColumn key={"role"} allowsSorting>
+            Role
           </TableColumn>
-          <TableColumn key={"lastCheckIn"} allowsSorting>
-            Last Check In
+          <TableColumn key={"actions"} align="center">
+            Actions
           </TableColumn>
         </TableHeader>
         <TableBody {...{ isLoading, items: data?.flat() || [] }}>
-          {(user) => {
-            return (
-              <TableRow
-                key={user._id}
-                className="hover:bg-[#27272a] transition-all">
-                <TableCell>
-                  <User
-                    avatarProps={{
-                      radius: "sm",
-                      src: user.photoURL,
-                      size: "md"
-                    }}
-                    description={user.email}
-                    name={user.displayName}
-                  />
-                </TableCell>
-                <TableCell>{(user.seconds / 60 / 60).toFixed(1)}</TableCell>
-                <TableCell>{user.meetingCount}</TableCell>
-                <TableCell>
-                  {user.lastCheckIn
-                    ? unixToFancyDate(user.lastCheckIn)
-                    : "Unknown"}
-                </TableCell>
-              </TableRow>
-            );
-          }}
+          {renderCell}
         </TableBody>
       </Table>
       {isValidating && (
@@ -244,7 +276,7 @@ function UsersTable() {
           <Spinner size="lg" ref={loaderRef} color="success" />
         </div>
       )}
-      <div className="sticky bottom-0 flex justify-end items-end size-full">
+      <div className="sticky bottom-0 left-full flex justify-end items-end w-max">
         <Download
           className="hover:opacity-70 transition-all"
           onClick={generateCSV}
