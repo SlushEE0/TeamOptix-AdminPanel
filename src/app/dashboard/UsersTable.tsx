@@ -9,6 +9,7 @@ import React, {
   useRef,
   useState
 } from "react";
+import { ArrayElement } from "mongodb";
 import { useRouter } from "next/navigation";
 
 import {
@@ -21,30 +22,44 @@ import {
   SortDescriptor,
   Spinner,
   User,
-  Tooltip
+  Tooltip,
+  Button,
+  Input,
+  Select,
+  SelectItem,
+  Chip,
+  ChipProps
 } from "@nextui-org/react";
-import { Download, Eye, Pencil, Plus, Trash2 } from "lucide-react";
+import { Download, Eye, Pen, Pencil, Plus, Trash2 } from "lucide-react";
 import { NextUIProvider } from "@nextui-org/system";
 import toast from "react-hot-toast";
 import useSWRInfinite from "swr/infinite";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog";
 
 import useOnScreen from "@/lib/useOnScreen";
 import { toLogged, unixToFancyDate } from "@/lib/utils";
 import { getDocumentCount, getPage } from "./pagination";
 import { getUserDataByID } from "../user/[userid]/utils";
-import { ArrayElement } from "mongodb";
+import { deleteUser } from "./utils";
+import ModifyUserDialog from "./ModifyUserDialog";
+import { useSWRConfig } from "swr";
 
 type t_items = Exclude<Awaited<ReturnType<typeof getPage>>, null>;
 
 const getKey = function (pageIndex: number, previousPageData: t_items) {
-  return `http://localhost:3000/api/users?skip=${pageIndex * 20}`;
+  return `${pageIndex * 20}`;
 };
 
-const dataFetcher = async function (url: string) {
-  const { searchParams } = new URL(url);
-  const skip = parseInt(searchParams.get("skip") || "0");
-
-  console.log(skip);
+const dataFetcher = async function (skipStr: string) {
+  const skip = parseInt(skipStr);
 
   return getPage(skip).then((ret) => ret || []);
 };
@@ -61,7 +76,7 @@ function UsersTable() {
 
   const router = useRouter();
 
-  const { data, isLoading, setSize, size, isValidating } =
+  const { data, isLoading, setSize, size, isValidating, mutate } =
     useSWRInfinite<t_items>(getKey, (url) => dataFetcher(url), {
       initialSize: 0,
       revalidateFirstPage: false
@@ -70,10 +85,10 @@ function UsersTable() {
   let items = data?.flat() || [];
 
   useEffect(() => {
-    // getDocumentCount().then((res) => {
-    //   SETpageCount(Math.ceil(res / 20));
-    //   SETuserCount(res);
-    // });
+    getDocumentCount().then((res) => {
+      SETpageCount(Math.ceil(res / 20));
+      SETuserCount(res);
+    });
   }, []);
 
   useEffect(() => {
@@ -193,12 +208,37 @@ function UsersTable() {
     setTimeout(() => toast.dismiss(loader), 1000);
   };
 
+  const handleUserDelete = async function (user: ArrayElement<t_items>) {
+    await deleteUser(user.uid);
+  };
+
+  const updateData = function (newData: ArrayElement<t_items>, index: number) {
+    mutate();
+  };
+
+  const getChipColor = function (seconds: number): ChipProps["color"] {
+    // 15 Hours is green
+    // 12 hours is yellow
+    // anything less is red
+
+    const RED_HOURS = 12;
+    const YELLOW_HOURS = 15;
+
+    if (seconds > YELLOW_HOURS * 60 * 60) return "success";
+    if (seconds > RED_HOURS * 60 * 60) return "warning";
+    return "danger";
+  };
+
+  let rendered = 0;
   const renderCell = useCallback((user: ArrayElement<t_items>) => {
-    console.log(user.photoURL);
+    const index = rendered;
+    rendered++;
+
+    console.log(index);
 
     return (
       <TableRow key={user._id}>
-        <TableCell className="w-min">
+        <TableCell>
           <User
             avatarProps={{
               radius: "lg",
@@ -210,12 +250,17 @@ function UsersTable() {
           />
         </TableCell>
         <TableCell className="flex flex-col">
-          <strong className="text-bold text-sm capitalize">
-            Hours: {user.seconds && (user.seconds / 60 / 60).toFixed(1)}
-          </strong>
-          <p className="text-bold text-sm capitalize text-default-400">
-            {user.meetingCount || 0} Meetings
-          </p>
+          <div className="flex justify-center items-center flex-col pr-5">
+            <Chip
+              className="text-bold text-sm"
+              color={getChipColor(user.seconds)}
+              variant="flat">
+              Hours: {user.seconds && (user.seconds / 60 / 60).toFixed(1)}
+            </Chip>
+            <p className="text-bold text-sm text-default-400">
+              {user.meetingCount || 0} Meetings
+            </p>
+          </div>
         </TableCell>
         <TableCell>
           <p className="capitalize text-left">{user.role}</p>
@@ -227,16 +272,48 @@ function UsersTable() {
                 <Eye />
               </span>
             </Tooltip>
-            <Tooltip content="Edit user">
-              <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
-                <Pencil />
-              </span>
-            </Tooltip>
-            <Tooltip color="danger" content="Delete user">
-              <span className="text-lg text-danger cursor-pointer active:opacity-50">
-                <Trash2 />
-              </span>
-            </Tooltip>
+            <ModifyUserDialog
+              {...{
+                user,
+                index,
+                updateData
+              }}
+            />
+            <Dialog>
+              <DialogTrigger>
+                <Tooltip color="danger" content="Delete User">
+                  <span className="text-lg text-danger cursor-pointer active:opacity-50">
+                    <Trash2 />
+                  </span>
+                </Tooltip>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    Are you sure you want to delete "
+                    <span className="text-warning-500">
+                      {user.displayName || "Unknown"}
+                    </span>
+                    " ?
+                  </DialogTitle>
+                  <DialogDescription>
+                    Press the button to confirm
+                  </DialogDescription>
+                </DialogHeader>
+                <section
+                  aria-label="main-dialog"
+                  className="flex size-full items-center justify-center">
+                  <br />
+                  <br />
+                  <Button
+                    onClick={() => handleUserDelete(user)}
+                    className="w-full"
+                    color="danger">
+                    Confirm
+                  </Button>
+                </section>
+              </DialogContent>
+            </Dialog>
           </div>
         </TableCell>
       </TableRow>
@@ -248,16 +325,14 @@ function UsersTable() {
       <Table
         aria-label="Users Table"
         removeWrapper
-        
         sortDescriptor={sortDescriptor}
-        onSortChange={sorter}
-        onRowAction={onNameClicked}>
+        onSortChange={sorter}>
         <TableHeader>
-          <TableColumn key={"user"} allowsSorting>
+          <TableColumn key={"user"} className="w-20" allowsSorting>
             {`Users (${userCount || " Loading ... "}, Loaded:
             ${items.length})`}
           </TableColumn>
-          <TableColumn key={"hours"} allowsSorting>
+          <TableColumn key={"hours"} align="center" allowsSorting>
             Build Season Hours
           </TableColumn>
           <TableColumn key={"role"} allowsSorting>
