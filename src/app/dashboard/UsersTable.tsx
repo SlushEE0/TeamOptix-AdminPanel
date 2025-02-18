@@ -51,6 +51,7 @@ import { getUserDataByID } from "../user/[userid]/utils";
 import { deleteUser } from "./utils";
 import ModifyUserDialog from "./ModifyUserDialog";
 import { useSWRConfig } from "swr";
+import { parse } from "path";
 
 type t_items = Exclude<Awaited<ReturnType<typeof getPage>>, null>;
 
@@ -82,6 +83,7 @@ function UsersTable() {
       revalidateFirstPage: false
     });
 
+  console.log(data);
   let items = data?.flat() || [];
 
   useEffect(() => {
@@ -167,11 +169,6 @@ function UsersTable() {
 
   const onNameClicked = async function (e: React.Key) {
     const data = await getUserDataByID(e.toString());
-
-    toast.loading(`Going to "${data?.displayName || "<NO NAME>"}"`, {
-      duration: 2000
-    });
-    router.push(("/user/" + e) as string);
   };
 
   const generateCSV = function () {
@@ -212,20 +209,37 @@ function UsersTable() {
     await deleteUser(user.uid);
   };
 
-  const updateData = function (newData: ArrayElement<t_items>, index: number) {
-    mutate();
+  const updateData = function (key: string, newObj: ArrayElement<t_items>) {
+    mutate((currData) => {
+      const dataCpy = currData;
+      const dataSel = dataCpy?.[parseInt(key)];
+
+      console.log(dataCpy);
+      console.log(dataSel);
+      console.log(key);
+
+      if (!dataSel || !dataCpy) {
+        toast.error("Failed to refresh table data");
+        return currData;
+      }
+
+      const dataIndex = dataSel.findIndex((e) => e._id === newObj._id);
+      dataCpy[parseInt(key)][dataIndex] = newObj;
+
+      return dataCpy;
+    });
   };
 
   const getChipColor = function (seconds: number): ChipProps["color"] {
-    // 15 Hours is green
-    // 12 hours is yellow
+    // 50 Hours is green
+    // 40 hours is yellow
     // anything less is red
 
-    const RED_HOURS = 12;
-    const YELLOW_HOURS = 15;
+    const GREEN_HOURS = 50;
+    const YELLOW_HOURS = 40;
 
-    if (seconds > YELLOW_HOURS * 60 * 60) return "success";
-    if (seconds > RED_HOURS * 60 * 60) return "warning";
+    if (seconds > GREEN_HOURS * 60 * 60) return "success";
+    if (seconds > YELLOW_HOURS * 60 * 60) return "warning";
     return "danger";
   };
 
@@ -233,8 +247,6 @@ function UsersTable() {
   const renderCell = useCallback((user: ArrayElement<t_items>) => {
     const index = rendered;
     rendered++;
-
-    console.log(index);
 
     return (
       <TableRow key={user._id}>

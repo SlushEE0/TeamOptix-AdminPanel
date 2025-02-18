@@ -22,14 +22,11 @@ import {
   SelectContent,
   SelectItem
 } from "@/components/ui/select";
-import { getPage } from "./pagination";
+import { getPage, getPageSize } from "./pagination";
 import { BaseRequestStates, t_Role } from "@/lib/types";
 import { changeRole, modifyHours } from "./utils";
 import toast from "react-hot-toast";
-import {
-  SWRInfiniteKeyedMutator,
-  SWRInfiniteMutatorOptions
-} from "swr/dist/infinite";
+import { mutate } from "swr";
 
 type user = ArrayElement<Exclude<Awaited<ReturnType<typeof getPage>>, null>>;
 
@@ -40,7 +37,7 @@ export default function get1Array({
 }: {
   user: user;
   index: number;
-  updateData: (data: user, index: number) => void;
+  updateData: (key: string, newData: any) => void;
 }) {
   const [seconds, SETseconds] = useState(user.seconds);
   const [role, SETrole] = useState<t_Role>(user.role);
@@ -58,7 +55,7 @@ export default function get1Array({
         role
       };
 
-      updateData(newData, index);
+      updateData(`${Math.floor(index / (await getPageSize()))}`, newData);
     } else {
       toast.error("Failed to save changes");
     }

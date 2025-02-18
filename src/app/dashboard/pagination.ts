@@ -8,9 +8,11 @@ import { firebaseAdminApp } from "@/db/firebaseInit";
 import { With_id, t_MongoUserData, t_Role } from "@/lib/types";
 import { toLogged } from "@/lib/utils";
 
-export async function getPage(skip: number, pageSize = 20) {
+const PAGE_SIZE = 20;
+
+export async function getPage(skip: number) {
   const docs = await models.User.find({})
-    .limit(pageSize)
+    .limit(PAGE_SIZE)
     .skip(skip)
     .lean()
     .exec();
@@ -82,4 +84,8 @@ export async function isLoadingFinished(
 
 export async function resetLoaded(docsHad = 0) {
   docsHad = docsHad;
+}
+
+export async function getPageSize() {
+  return PAGE_SIZE;
 }
