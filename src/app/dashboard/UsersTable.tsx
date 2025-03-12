@@ -301,11 +301,11 @@ function UsersTable() {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>
-                      Are you sure you want to delete "
+                      Are you sure you want to delete &quot;
                       <span className="text-warning-500">
                         {user.displayName || "Unknown"}
                       </span>
-                      " ?
+                      &quot; ?
                     </DialogTitle>
                     <DialogDescription>
                       Press the button to confirm

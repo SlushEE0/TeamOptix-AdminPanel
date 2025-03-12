@@ -43,7 +43,7 @@ export default function TimePicker({ SETtime }: props) {
     const endMillis = dateCpy?.getTime() || 0;
 
     SETtime([startMillis, endMillis]);
-  }, [startTime, endTime, date]);
+  }, [startTime, endTime, date, SETtime]);
 
   useEffect(() => {
     submitTime();

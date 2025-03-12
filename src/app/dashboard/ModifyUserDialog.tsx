@@ -102,7 +102,9 @@ export default function ModifyUserDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit User Data</DialogTitle>
-          <DialogDescription>Modify "{user.displayName}"</DialogDescription>
+          <DialogDescription>
+            Modify {`"${user.displayName}"`}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="grid-cols-2 grid-rows-3">
