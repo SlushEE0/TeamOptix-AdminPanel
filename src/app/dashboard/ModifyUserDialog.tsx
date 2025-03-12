@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrayElement } from "mongodb";
+import toast from "react-hot-toast";
 
 import { Tooltip } from "@nextui-org/react";
 import { Pencil } from "lucide-react";
@@ -11,9 +12,10 @@ import {
   DialogTrigger,
   DialogContent,
   DialogTitle,
-  DialogDescription
+  DialogDescription,
+  DialogFooter
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -25,24 +27,25 @@ import {
 import { getPage, getPageSize } from "./pagination";
 import { BaseRequestStates, t_Role } from "@/lib/types";
 import { changeRole, modifyHours } from "./utils";
-import toast from "react-hot-toast";
-import { mutate } from "swr";
 
 type user = ArrayElement<Exclude<Awaited<ReturnType<typeof getPage>>, null>>;
 
-export default function get1Array({
+export default function ModifyUserDialog({
   user,
-  index,
   updateData
 }: {
   user: user;
-  index: number;
-  updateData: (key: string, newData: any) => void;
+  updateData: (newData: any) => void;
 }) {
-  const [seconds, SETseconds] = useState(user.seconds);
+  const [time, SETtime] = useState({
+    hours: parseInt(Math.floor(user.seconds / 3600).toFixed(0)),
+    minutes: parseInt(Math.floor((user.seconds % 3600) / 60).toFixed(0))
+  });
   const [role, SETrole] = useState<t_Role>(user.role);
 
   const handleSave = async function () {
+    const seconds = time.hours * 3600 + time.minutes * 60;
+
     let res = await modifyHours(user._id, seconds);
     res |= await changeRole(user._id, role);
 
@@ -55,15 +58,36 @@ export default function get1Array({
         role
       };
 
-      updateData(`${Math.floor(index / (await getPageSize()))}`, newData);
+      updateData(newData);
     } else {
       toast.error("Failed to save changes");
     }
   };
 
-  const formatHours = (seconds: number) => {
-    const hours = (seconds / 3600).toFixed(1);
-    return `${hours} hours`;
+  const getFormattedTime = function () {
+    return `${time.hours} hours, ${time.minutes} minutes`;
+  };
+
+  const handleTimeChange = function (e: ChangeEvent<HTMLInputElement>) {
+    const newTime = e.target.value;
+    const key = e.target.name as keyof typeof time;
+
+    let t: number;
+
+    if (newTime) {
+      try {
+        t = parseInt(newTime);
+      } catch (e) {
+        return;
+      }
+    } else {
+      t = 0;
+    }
+
+    SETtime((prev) => ({
+      ...prev,
+      [key]: t
+    }));
   };
 
   return (
@@ -81,35 +105,25 @@ export default function get1Array({
           <DialogDescription>Modify "{user.displayName}"</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-700">
-                Display Name
-              </label>
-              <Input value={user.displayName} disabled className="mt-1" />
-            </div>
-
+        <div className="grid-cols-2 grid-rows-3">
+          <div className="col-span-2 row-span-1">
+            <label className="text-sm font-medium text-gray-700">
+              Display Name
+            </label>
+            <Input
+              value={user?.displayName || "Unknown"}
+              disabled
+              className="mt-1"
+            />
+          </div>
+          <div className="row-span-1 grid grid-cols-2 grid-rows-2 gap-4">
             <div>
               <label className="text-sm font-medium text-gray-700">Email</label>
-              <Input value={user.email} disabled className="mt-1" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-700">
-                Total Hours
-              </label>
               <Input
-                type="number"
-                value={(seconds / 3600).toFixed(2)}
-                onChange={(e) => SETseconds(parseFloat(e.target.value) * 3600)}
+                value={user?.email || "Unknown"}
+                disabled
                 className="mt-1"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Current: {formatHours(user.seconds)}
-              </p>
             </div>
 
             <div>
@@ -117,6 +131,7 @@ export default function get1Array({
                 User Role
               </label>
               <Select
+                defaultValue={user.role}
                 value={role}
                 onValueChange={(value: t_Role) => SETrole(value)}>
                 <SelectTrigger className="mt-1">
@@ -125,17 +140,45 @@ export default function get1Array({
                 <SelectContent>
                   <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="certified">Certified</SelectItem>
-                  <SelectItem value="member">Guest</SelectItem>
+                  <SelectItem value="member">Member</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                Build Hours
+              </label>
+              {/* <Input
+                type="number"
+                value={(seconds / 3600).toFixed(2)}
+                onChange={(e) => SETseconds(parseFloat(e.target.value) * 3600)}
+                className="mt-1"
+              /> */}
+              <div className="flex gap-3">
+                <Input
+                  name="hours"
+                  value={time.hours}
+                  onChange={handleTimeChange}
+                />
+                <Input
+                  name="minutes"
+                  value={time.minutes}
+                  onChange={handleTimeChange}
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Current: {getFormattedTime()}
+              </p>
+            </div>
           </div>
+        </div>
 
+        <DialogFooter>
           <div className="flex justify-end gap-2 mt-6">
             <Button variant="outline">Cancel</Button>
             <Button onClick={handleSave}>Save Changes</Button>
           </div>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -37,10 +37,6 @@ export default function LoginForm() {
         body: JSON.stringify({ email, pass })
       });
 
-    console.log(state);
-    console.log(message);
-
-    console.log(AuthStates.UNAUTHORIZED);
     switch (state) {
       case AuthStates.ADMIN_AUTHORIZED:
         // console.log("AUTHORIZED");
@@ -62,12 +58,9 @@ export default function LoginForm() {
         break;
       case AuthStates.ERROR:
       default:
-        // console.log("ERROR");
-        toast.error("An error occured :(", { duration: 20000 });
+        message ? toast.error(message) : toast.error("Something Went Wrong :(");
         break;
     }
-
-    // toast.remove(loader);
   };
 
   const onGsignIn = async function () {

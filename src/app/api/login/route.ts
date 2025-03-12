@@ -2,6 +2,7 @@ import { signIn_emailPass } from "@/db/firebaseUtils";
 import { LOGIN_COOKIE_MAXAGE } from "@/lib/config";
 import { createSession } from "@/lib/session";
 import { AuthStates } from "@/lib/types";
+import { FirebaseError } from "firebase/app";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -10,9 +11,36 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   const { email, pass }: { email: string; pass: string } = await req.json();
 
-  const authState = await signIn_emailPass(email, pass);
+  let authState: AuthStates = AuthStates.ERROR;
+  try {
+    authState = await signIn_emailPass(email, pass);
+  } catch (e) {
+    switch ((e as FirebaseError).message) {
+      case "auth/user-not-found":
+        return new Response(
+          JSON.stringify({
+            message: "Incorrect Email/Pass",
+            state: authState
+          }),
+          {
+            status: 400
+          }
+        );
+      case "auth/network-request-failed":
+        return new Response(
+          JSON.stringify({
+            message: "Server Network Error",
+            state: authState
+          }),
+          {
+            status: 504
+          }
+        );
+    }
+  }
 
   console.log(`[LOGIN] ${email} ${authState}`);
+
   switch (authState) {
     case AuthStates.ADMIN_AUTHORIZED:
       await createSession(email, true);
@@ -20,16 +48,6 @@ export async function POST(req: Request) {
     case AuthStates.USER_AUTHORIZED:
       await createSession(email, false);
       break;
-    case AuthStates.WRONG_PASSWORD:
-      return new Response(
-        JSON.stringify({
-          message: "Incorrect Password",
-          state: authState
-        }),
-        {
-          status: 400
-        }
-      );
     case AuthStates.UNAUTHORIZED:
       return new Response(
         JSON.stringify({

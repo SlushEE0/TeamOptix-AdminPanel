@@ -65,6 +65,8 @@ const dataFetcher = async function (skipStr: string) {
   return getPage(skip).then((ret) => ret || []);
 };
 
+let rendered = 0;
+
 function UsersTable() {
   const [pageCount, SETpageCount] = useState(1);
   const [userCount, SETuserCount] = useState<null | number>(null);
@@ -83,7 +85,6 @@ function UsersTable() {
       revalidateFirstPage: false
     });
 
-  console.log(data);
   let items = data?.flat() || [];
 
   useEffect(() => {
@@ -91,6 +92,9 @@ function UsersTable() {
       SETpageCount(Math.ceil(res / 20));
       SETuserCount(res);
     });
+    // const res = 20;
+    // SETpageCount(Math.ceil(res / 20));
+    // SETuserCount(res);
   }, []);
 
   useEffect(() => {
@@ -209,14 +213,13 @@ function UsersTable() {
     await deleteUser(user.uid);
   };
 
-  const updateData = function (key: string, newObj: ArrayElement<t_items>) {
+  const updateData = function (newObj: ArrayElement<t_items>) {
+    let index = items.findIndex((item) => item._id === newObj._id);
+    let key = Math.floor(index / 20);
+
     mutate((currData) => {
       const dataCpy = currData;
-      const dataSel = dataCpy?.[parseInt(key)];
-
-      console.log(dataCpy);
-      console.log(dataSel);
-      console.log(key);
+      const dataSel = dataCpy?.[key];
 
       if (!dataSel || !dataCpy) {
         toast.error("Failed to refresh table data");
@@ -224,7 +227,7 @@ function UsersTable() {
       }
 
       const dataIndex = dataSel.findIndex((e) => e._id === newObj._id);
-      dataCpy[parseInt(key)][dataIndex] = newObj;
+      dataCpy[key][dataIndex] = newObj;
 
       return dataCpy;
     });
@@ -238,99 +241,97 @@ function UsersTable() {
     const GREEN_HOURS = 50;
     const YELLOW_HOURS = 40;
 
-    if (seconds > GREEN_HOURS * 60 * 60) return "success";
-    if (seconds > YELLOW_HOURS * 60 * 60) return "warning";
+    if (seconds + 500 >= GREEN_HOURS * 60 * 60) return "success";
+    if (seconds + 500 >= YELLOW_HOURS * 60 * 60) return "warning";
     return "danger";
   };
 
-  let rendered = 0;
-  const renderCell = useCallback((user: ArrayElement<t_items>) => {
-    const index = rendered;
-    rendered++;
-
-    return (
-      <TableRow key={user._id}>
-        <TableCell>
-          <User
-            avatarProps={{
-              radius: "lg",
-              src: user.photoURL,
-              size: "md"
-            }}
-            description={user.email}
-            name={user.displayName}
-          />
-        </TableCell>
-        <TableCell className="flex flex-col">
-          <div className="flex justify-center items-center flex-col pr-5">
-            <Chip
-              className="text-bold text-sm"
-              color={getChipColor(user.seconds)}
-              variant="flat">
-              Hours: {user.seconds && (user.seconds / 60 / 60).toFixed(1)}
-            </Chip>
-            <p className="text-bold text-sm text-default-400">
-              {user.meetingCount || 0} Meetings
-            </p>
-          </div>
-        </TableCell>
-        <TableCell>
-          <p className="capitalize text-left">{user.role}</p>
-        </TableCell>
-        <TableCell align="center">
-          <div className="relative flex items-center justify-center gap-3">
-            <Tooltip content="Details">
-              <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
-                <Eye />
-              </span>
-            </Tooltip>
-            <ModifyUserDialog
-              {...{
-                user,
-                index,
-                updateData
+  const renderCell = useCallback(
+    (user: ArrayElement<t_items>) => {
+      return (
+        <TableRow key={user._id}>
+          <TableCell>
+            <User
+              avatarProps={{
+                radius: "lg",
+                src: user.photoURL,
+                size: "md"
               }}
+              description={user.email}
+              name={user.displayName}
             />
-            <Dialog>
-              <DialogTrigger>
-                <Tooltip color="danger" content="Delete User">
-                  <span className="text-lg text-danger cursor-pointer active:opacity-50">
-                    <Trash2 />
-                  </span>
-                </Tooltip>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>
-                    Are you sure you want to delete "
-                    <span className="text-warning-500">
-                      {user.displayName || "Unknown"}
+          </TableCell>
+          <TableCell className="flex flex-col">
+            <div className="flex justify-center items-center flex-col pr-5">
+              <Chip
+                className="text-bold text-sm"
+                color={getChipColor(user.seconds)}
+                variant="flat">
+                Hours: {user.seconds && (user.seconds / 60 / 60).toFixed(1)}
+              </Chip>
+              <p className="text-bold text-sm text-default-400">
+                {user.meetingCount || 0} Meetings
+              </p>
+            </div>
+          </TableCell>
+          <TableCell>
+            <p className="capitalize text-left">{user.role}</p>
+          </TableCell>
+          <TableCell align="center">
+            <div className="relative flex items-center justify-center gap-3">
+              <Tooltip content="Details">
+                <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                  <Eye />
+                </span>
+              </Tooltip>
+              <ModifyUserDialog
+                {...{
+                  user,
+                  updateData
+                }}
+              />
+              <Dialog>
+                <DialogTrigger>
+                  <Tooltip color="danger" content="Delete User">
+                    <span className="text-lg text-danger cursor-pointer active:opacity-50">
+                      <Trash2 />
                     </span>
-                    " ?
-                  </DialogTitle>
-                  <DialogDescription>
-                    Press the button to confirm
-                  </DialogDescription>
-                </DialogHeader>
-                <section
-                  aria-label="main-dialog"
-                  className="flex size-full items-center justify-center">
-                  <br />
-                  <br />
-                  <Button
-                    onClick={() => handleUserDelete(user)}
-                    className="w-full"
-                    color="danger">
-                    Confirm
-                  </Button>
-                </section>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </TableCell>
-      </TableRow>
-    );
-  }, []);
+                  </Tooltip>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>
+                      Are you sure you want to delete "
+                      <span className="text-warning-500">
+                        {user.displayName || "Unknown"}
+                      </span>
+                      " ?
+                    </DialogTitle>
+                    <DialogDescription>
+                      Press the button to confirm
+                    </DialogDescription>
+                  </DialogHeader>
+                  <section
+                    aria-label="main-dialog"
+                    className="flex size-full items-center justify-center">
+                    <br />
+                    <br />
+                    <Button
+                      onClick={() => handleUserDelete(user)}
+                      className="w-full"
+                      color="danger">
+                      Confirm
+                    </Button>
+                  </section>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </TableCell>
+        </TableRow>
+      );
+    },
+    [data, items]
+  );
 
   return (
     <div className="relative h-full">
