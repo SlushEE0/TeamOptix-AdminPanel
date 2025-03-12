@@ -34,19 +34,8 @@ export async function signIn_emailPass(
 ) {
   setPersistence(firebaseAuth, browserLocalPersistence);
 
-  let user;
-  try {
-    user = (await signInWithEmailAndPassword(firebaseAuth, email, password))
+  let user = (await signInWithEmailAndPassword(firebaseAuth, email, password))
       .user;
-  } catch (e) {
-    if ((e as FirebaseError).code === "auth/wrong-password") {
-      console.log("Unknown User");
-      return AuthStates.WRONG_PASSWORD;
-    }
-
-    console.log(e);
-    return AuthStates.ERROR;
-  }
 
   const userAdminified = await firebaseAdminApp.auth().getUser(user.uid);
 
@@ -56,7 +45,7 @@ export async function signIn_emailPass(
   if (isAdmin) return AuthStates.ADMIN_AUTHORIZED;
   if (isMember) return AuthStates.USER_AUTHORIZED;
 
-  return AuthStates.UNAUTHORIZED;
+  return AuthStates.UNAUTHORIZED
 }
 
 // export async function signIn_google() {

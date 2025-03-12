@@ -1,6 +1,15 @@
 "use client";
 
-import React, { memo, use, useEffect, useRef, useState } from "react";
+import React, {
+  Key,
+  memo,
+  use,
+  useCallback,
+  useEffect,
+  useRef,
+  useState
+} from "react";
+import { ArrayElement } from "mongodb";
 import { useRouter } from "next/navigation";
 
 import {
@@ -12,35 +21,54 @@ import {
   TableCell,
   SortDescriptor,
   Spinner,
-  User
+  User,
+  Tooltip,
+  Button,
+  Input,
+  Select,
+  SelectItem,
+  Chip,
+  ChipProps
 } from "@nextui-org/react";
-import { Download, Plus } from "lucide-react";
+import { Download, Eye, Pen, Pencil, Plus, Trash2 } from "lucide-react";
 import { NextUIProvider } from "@nextui-org/system";
 import toast from "react-hot-toast";
 import useSWRInfinite from "swr/infinite";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog";
 
 import useOnScreen from "@/lib/useOnScreen";
 import { toLogged, unixToFancyDate } from "@/lib/utils";
 import { getDocumentCount, getPage } from "./pagination";
 import { getUserDataByID } from "../user/[userid]/utils";
+import { deleteUser } from "./utils";
+import ModifyUserDialog from "./ModifyUserDialog";
+import { useSWRConfig } from "swr";
+import { parse } from "path";
 
 type t_items = Exclude<Awaited<ReturnType<typeof getPage>>, null>;
 
 const getKey = function (pageIndex: number, previousPageData: t_items) {
-  return `http://localhost:3000/api/users?skip=${pageIndex * 20}`;
+  return `${pageIndex * 20}`;
 };
 
-const dataFetcher = async function (url: string) {
-  const { searchParams } = new URL(url);
-  const skip = parseInt(searchParams.get("skip") || "0");
-
-  console.log(skip);
+const dataFetcher = async function (skipStr: string) {
+  const skip = parseInt(skipStr);
 
   return getPage(skip).then((ret) => ret || []);
 };
 
+let rendered = 0;
+
 function UsersTable() {
-  const [pageCount, SETpageCount] = useState(4);
+  const [pageCount, SETpageCount] = useState(1);
   const [userCount, SETuserCount] = useState<null | number>(null);
 
   const [sortedItems, SETsortedItems] = useState<t_items>([]);
@@ -51,9 +79,10 @@ function UsersTable() {
 
   const router = useRouter();
 
-  const { data, isLoading, setSize, size, isValidating } =
+  const { data, isLoading, setSize, size, isValidating, mutate } =
     useSWRInfinite<t_items>(getKey, (url) => dataFetcher(url), {
-      initialSize: 0
+      initialSize: 0,
+      revalidateFirstPage: false
     });
 
   let items = data?.flat() || [];
@@ -63,6 +92,9 @@ function UsersTable() {
       SETpageCount(Math.ceil(res / 20));
       SETuserCount(res);
     });
+    // const res = 20;
+    // SETpageCount(Math.ceil(res / 20));
+    // SETuserCount(res);
   }, []);
 
   useEffect(() => {
@@ -71,67 +103,63 @@ function UsersTable() {
     if (size >= pageCount) return;
 
     setSize((prev) => (prev < pageCount ? prev + 1 : prev));
-  }, [data]);
+  }, [data, userCount, isValidating]);
 
-  if (items[0]) {
-    console.log(items[0].displayName, items[0].seconds);
-  }
-
-  const sorter = function (descriptor: SortDescriptor, data = items) {
-    let newSortedItems = data;
+  const sorter = function (descriptor: SortDescriptor, currItems = items) {
+    let newSortedItems = currItems;
 
     switch (descriptor.column) {
       case "hours":
         newSortedItems = (() => {
           if (descriptor.direction === "ascending") {
-            return data.toSorted((a, b) => a.seconds - b.seconds);
+            return currItems.toSorted((a, b) => a.seconds - b.seconds);
           } else if (descriptor.direction === "descending") {
-            return data.toSorted((a, b) => b.seconds - a.seconds);
+            return currItems.toSorted((a, b) => b.seconds - a.seconds);
           }
 
-          return data;
+          return currItems;
         })();
         break;
 
       case "meetings":
         newSortedItems = (() => {
           if (descriptor.direction === "ascending") {
-            return data.toSorted((a, b) => a.meetingCount - b.meetingCount);
+            return currItems.toSorted((a, b) => a.meetingCount - b.meetingCount);
           } else if (descriptor.direction === "descending") {
-            return data.toSorted((a, b) => b.meetingCount - a.meetingCount);
+            return currItems.toSorted((a, b) => b.meetingCount - a.meetingCount);
           }
 
-          return data;
+          return currItems;
         })();
         break;
 
       case "user":
         newSortedItems = (() => {
           if (descriptor.direction === "ascending") {
-            return data.toSorted((a, b) => {
+            return currItems.toSorted((a, b) => {
               if (!a.displayName || !b.displayName) return -1;
               return a.displayName.localeCompare(b.displayName);
             });
           } else if (descriptor.direction === "descending") {
-            return data.toSorted((a, b) => {
+            return currItems.toSorted((a, b) => {
               if (!a.displayName || !b.displayName) return -1;
               return b.displayName.localeCompare(a.displayName);
             });
           }
 
-          return data;
+          return currItems;
         })();
         break;
 
       case "lastCheckIn":
         newSortedItems = (() => {
           if (descriptor.direction === "ascending") {
-            return data.toSorted((a, b) => a.lastCheckIn - b.lastCheckIn);
+            return currItems.toSorted((a, b) => a.lastCheckIn - b.lastCheckIn);
           } else if (descriptor.direction === "descending") {
-            return data.toSorted((a, b) => b.lastCheckIn - a.lastCheckIn);
+            return currItems.toSorted((a, b) => b.lastCheckIn - a.lastCheckIn);
           }
 
-          return data;
+          return currItems;
         })();
         break;
 
@@ -145,11 +173,6 @@ function UsersTable() {
 
   const onNameClicked = async function (e: React.Key) {
     const data = await getUserDataByID(e.toString());
-
-    toast.loading(`Going to "${data?.displayName || "<NO NAME>"}"`, {
-      duration: 2000
-    });
-    router.push(("/user/" + e) as string);
   };
 
   const generateCSV = function () {
@@ -186,57 +209,154 @@ function UsersTable() {
     setTimeout(() => toast.dismiss(loader), 1000);
   };
 
+  const handleUserDelete = async function (user: ArrayElement<t_items>) {
+    await deleteUser(user.uid);
+  };
+
+  const updateData = function (newObj: ArrayElement<t_items>) {
+    let index = items.findIndex((item) => item._id === newObj._id);
+    let key = Math.floor(index / 20);
+
+    mutate((currData) => {
+      const dataCpy = currData;
+      const dataSel = dataCpy?.[key];
+
+      if (!dataSel || !dataCpy) {
+        toast.error("Failed to refresh table data");
+        return currData;
+      }
+
+      const dataIndex = dataSel.findIndex((e) => e._id === newObj._id);
+      dataCpy[key][dataIndex] = newObj;
+
+      return dataCpy;
+    });
+  };
+
+  const getChipColor = function (seconds: number): ChipProps["color"] {
+    // 50 Hours is green
+    // 40 hours is yellow
+    // anything less is red
+
+    const GREEN_HOURS = 50;
+    const YELLOW_HOURS = 40;
+
+    if (seconds + 500 >= GREEN_HOURS * 60 * 60) return "success";
+    if (seconds + 500 >= YELLOW_HOURS * 60 * 60) return "warning";
+    return "danger";
+  };
+
+  const renderCell = useCallback(
+    (user: ArrayElement<t_items>) => {
+      return (
+        <TableRow key={user._id}>
+          <TableCell>
+            <User
+              avatarProps={{
+                radius: "lg",
+                src: user.photoURL,
+                size: "md"
+              }}
+              description={user.email}
+              name={user.displayName}
+            />
+          </TableCell>
+          <TableCell className="flex flex-col">
+            <div className="flex justify-center items-center flex-col pr-5">
+              <Chip
+                className="text-bold text-sm"
+                color={getChipColor(user.seconds)}
+                variant="flat">
+                Hours: {user.seconds && (user.seconds / 60 / 60).toFixed(1)}
+              </Chip>
+              <p className="text-bold text-sm text-default-400">
+                {user.meetingCount || 0} Meetings
+              </p>
+            </div>
+          </TableCell>
+          <TableCell>
+            <p className="capitalize text-left">{user.role}</p>
+          </TableCell>
+          <TableCell align="center">
+            <div className="relative flex items-center justify-center gap-3">
+              <Tooltip content="Details">
+                <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                  <Eye />
+                </span>
+              </Tooltip>
+              <ModifyUserDialog
+                {...{
+                  user,
+                  updateData
+                }}
+              />
+              <Dialog>
+                <DialogTrigger>
+                  <Tooltip color="danger" content="Delete User">
+                    <span className="text-lg text-danger cursor-pointer active:opacity-50">
+                      <Trash2 />
+                    </span>
+                  </Tooltip>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>
+                      Are you sure you want to delete &quot;
+                      <span className="text-warning-500">
+                        {user.displayName || "Unknown"}
+                      </span>
+                      &quot; ?
+                    </DialogTitle>
+                    <DialogDescription>
+                      Press the button to confirm
+                    </DialogDescription>
+                  </DialogHeader>
+                  <section
+                    aria-label="main-dialog"
+                    className="flex size-full items-center justify-center">
+                    <br />
+                    <br />
+                    <Button
+                      onClick={() => handleUserDelete(user)}
+                      className="w-full"
+                      color="danger">
+                      Confirm
+                    </Button>
+                  </section>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </TableCell>
+        </TableRow>
+      );
+    },
+    [data, items]
+  );
+
   return (
     <div className="relative h-full">
       <Table
         aria-label="Users Table"
         removeWrapper
-        isHeaderSticky
         sortDescriptor={sortDescriptor}
-        onSortChange={sorter}
-        onRowAction={onNameClicked}>
+        onSortChange={sorter}>
         <TableHeader>
-          <TableColumn key={"user"} allowsSorting>
-            Users ({userCount ? userCount : " Loading ... "}, Loaded:{" "}
-            {items.length})
+          <TableColumn key={"user"} className="w-20" allowsSorting>
+            {`Users (${userCount || " Loading ... "}, Loaded:
+            ${items.length})`}
           </TableColumn>
-          <TableColumn key={"hours"} allowsSorting>
+          <TableColumn key={"hours"} align="center" allowsSorting>
             Build Season Hours
           </TableColumn>
-          <TableColumn key={"meetings"} allowsSorting>
-            Meeting Count
+          <TableColumn key={"role"} allowsSorting>
+            Role
           </TableColumn>
-          <TableColumn key={"lastCheckIn"} allowsSorting>
-            Last Check In
+          <TableColumn key={"actions"} align="center">
+            Actions
           </TableColumn>
         </TableHeader>
-        <TableBody {...{ isLoading, items: data?.flat() || [] }}>
-          {(user) => {
-            return (
-              <TableRow
-                key={user._id}
-                className="hover:bg-[#27272a] transition-all">
-                <TableCell>
-                  <User
-                    avatarProps={{
-                      radius: "sm",
-                      src: user.photoURL,
-                      size: "md"
-                    }}
-                    description={user.email}
-                    name={user.displayName}
-                  />
-                </TableCell>
-                <TableCell>{(user.seconds / 60 / 60).toFixed(1)}</TableCell>
-                <TableCell>{user.meetingCount}</TableCell>
-                <TableCell>
-                  {user.lastCheckIn
-                    ? unixToFancyDate(user.lastCheckIn)
-                    : "Unknown"}
-                </TableCell>
-              </TableRow>
-            );
-          }}
+        <TableBody {...{ isLoading, items: sortedItems || [] }}>
+          {renderCell}
         </TableBody>
       </Table>
       {isValidating && (
@@ -244,7 +364,7 @@ function UsersTable() {
           <Spinner size="lg" ref={loaderRef} color="success" />
         </div>
       )}
-      <div className="sticky bottom-0 flex justify-end items-end size-full">
+      <div className="sticky bottom-0 left-full flex justify-end items-end w-max">
         <Download
           className="hover:opacity-70 transition-all"
           onClick={generateCSV}

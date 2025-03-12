@@ -83,6 +83,11 @@ export enum PasswordResetStates {
   ERROR
 }
 
+export enum BaseRequestStates {
+  SUCCESS,
+  ERROR
+}
+
 // Make tables modular
 
 // export type t_DataTableColumn = {
