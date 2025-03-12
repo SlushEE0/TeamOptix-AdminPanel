@@ -103,63 +103,63 @@ function UsersTable() {
     if (size >= pageCount) return;
 
     setSize((prev) => (prev < pageCount ? prev + 1 : prev));
-  }, [data]);
+  }, [data, userCount, isValidating]);
 
-  const sorter = function (descriptor: SortDescriptor, data = items) {
-    let newSortedItems = data;
+  const sorter = function (descriptor: SortDescriptor, currItems = items) {
+    let newSortedItems = currItems;
 
     switch (descriptor.column) {
       case "hours":
         newSortedItems = (() => {
           if (descriptor.direction === "ascending") {
-            return data.toSorted((a, b) => a.seconds - b.seconds);
+            return currItems.toSorted((a, b) => a.seconds - b.seconds);
           } else if (descriptor.direction === "descending") {
-            return data.toSorted((a, b) => b.seconds - a.seconds);
+            return currItems.toSorted((a, b) => b.seconds - a.seconds);
           }
 
-          return data;
+          return currItems;
         })();
         break;
 
       case "meetings":
         newSortedItems = (() => {
           if (descriptor.direction === "ascending") {
-            return data.toSorted((a, b) => a.meetingCount - b.meetingCount);
+            return currItems.toSorted((a, b) => a.meetingCount - b.meetingCount);
           } else if (descriptor.direction === "descending") {
-            return data.toSorted((a, b) => b.meetingCount - a.meetingCount);
+            return currItems.toSorted((a, b) => b.meetingCount - a.meetingCount);
           }
 
-          return data;
+          return currItems;
         })();
         break;
 
       case "user":
         newSortedItems = (() => {
           if (descriptor.direction === "ascending") {
-            return data.toSorted((a, b) => {
+            return currItems.toSorted((a, b) => {
               if (!a.displayName || !b.displayName) return -1;
               return a.displayName.localeCompare(b.displayName);
             });
           } else if (descriptor.direction === "descending") {
-            return data.toSorted((a, b) => {
+            return currItems.toSorted((a, b) => {
               if (!a.displayName || !b.displayName) return -1;
               return b.displayName.localeCompare(a.displayName);
             });
           }
 
-          return data;
+          return currItems;
         })();
         break;
 
       case "lastCheckIn":
         newSortedItems = (() => {
           if (descriptor.direction === "ascending") {
-            return data.toSorted((a, b) => a.lastCheckIn - b.lastCheckIn);
+            return currItems.toSorted((a, b) => a.lastCheckIn - b.lastCheckIn);
           } else if (descriptor.direction === "descending") {
-            return data.toSorted((a, b) => b.lastCheckIn - a.lastCheckIn);
+            return currItems.toSorted((a, b) => b.lastCheckIn - a.lastCheckIn);
           }
 
-          return data;
+          return currItems;
         })();
         break;
 
@@ -355,7 +355,7 @@ function UsersTable() {
             Actions
           </TableColumn>
         </TableHeader>
-        <TableBody {...{ isLoading, items: data?.flat() || [] }}>
+        <TableBody {...{ isLoading, items: sortedItems || [] }}>
           {renderCell}
         </TableBody>
       </Table>
